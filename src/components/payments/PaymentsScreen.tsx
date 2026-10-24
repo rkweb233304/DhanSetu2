@@ -33,7 +33,7 @@ export const PaymentsScreen: React.FC = () => {
   const [showPayModal, setShowPayModal] = useState(false);
   const [payType, setPayType] = useState<'emi' | 'custom' | 'full'>('emi');
   const [customAmount, setCustomAmount] = useState<number>(5000);
-  const [selectedMethod, setSelectedMethod] = useState<'UPI' | 'Net Banking' | 'Debit Card'>('UPI');
+  const [selectedMethod, setSelectedMethod] = useState<'UPI'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [copiedUPI, setCopiedUPI] = useState(false);
@@ -53,7 +53,7 @@ export const PaymentsScreen: React.FC = () => {
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(OFFICIAL_REPAYMENT_UPI_ID);
     setCopiedUPI(true);
-    showToast(`UPI ID ${OFFICIAL_REPAYMENT_UPI_ID} copied!`, 'success');
+    showToast(`Official UPI ID ${OFFICIAL_REPAYMENT_UPI_ID} copied!`, 'success');
     setTimeout(() => setCopiedUPI(false), 2500);
   };
 
@@ -443,9 +443,7 @@ export const PaymentsScreen: React.FC = () => {
                     </label>
                     <div className="space-y-2">
                       {[
-                        { id: 'UPI', label: 'UPI Instant', desc: 'Google Pay, PhonePe, Paytm, BHIM' },
-                        { id: 'Net Banking', label: 'Net Banking', desc: 'All Indian Banks Supported' },
-                        { id: 'Debit Card', label: 'Debit Card', desc: 'Visa, RuPay, MasterCard' }
+                        { id: 'UPI', label: 'UPI Instant', desc: 'Google Pay, PhonePe, Paytm, BHIM' }
                       ].map((m) => (
                         <label
                           key={m.id}

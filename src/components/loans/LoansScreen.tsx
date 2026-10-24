@@ -419,16 +419,16 @@ export const LoansScreen: React.FC<LoansScreenProps> = ({ onOpenTracker }) => {
                 </select>
               </div>
 
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1">
-                <div className="flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>KYC Verified Borrower</span>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-800 font-semibold text-[11px]">
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
+                  <span>Retailer Approval Workflow</span>
                 </div>
                 <p className="text-[10px] text-slate-600">
                   Beneficiary: {user?.fullName} · {user?.bankName} ({user?.accountNumber})
                 </p>
-                <p className="text-[10px] text-emerald-700">
-                  ✓ Instant real-time tracking begins immediately upon submission.
+                <p className="text-[10px] text-amber-900 font-medium">
+                  ℹ Normal users submit loan requests. Your authorized DhanSetu Retailer will verify and approve the loan for instant disbursal.
                 </p>
               </div>
 
@@ -437,7 +437,7 @@ export const LoansScreen: React.FC<LoansScreenProps> = ({ onOpenTracker }) => {
                 disabled={isApplying}
                 className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {isApplying ? 'Submitting Application...' : 'Confirm & Track Approval in Real-Time'}
+                {isApplying ? 'Sending Request to Retailer...' : 'Send Loan Request to Retailer'}
               </button>
             </form>
           </div>

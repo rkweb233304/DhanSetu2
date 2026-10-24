@@ -15,6 +15,7 @@ import {
   Check
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { supabaseService } from '../../services/supabaseService';
 
 export const KYCScreen: React.FC = () => {
   const { user, updateUserKYC, setActiveTab, showToast } = useApp();
@@ -82,7 +83,7 @@ export const KYCScreen: React.FC = () => {
     setActiveCaptureTarget(null);
   };
 
-  const captureSnapshot = () => {
+  const captureSnapshot = async () => {
     if (!videoRef.current) return;
     const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth || 640;
@@ -93,29 +94,49 @@ export const KYCScreen: React.FC = () => {
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-    if (activeCaptureTarget === 'selfie') setSelfieUrl(dataUrl);
-    if (activeCaptureTarget === 'aadhar_front') setAadharFrontUrl(dataUrl);
-    if (activeCaptureTarget === 'aadhar_back') setAadharBackUrl(dataUrl);
-    if (activeCaptureTarget === 'pan') setPanUrl(dataUrl);
+    const target = activeCaptureTarget;
+    if (!target) return;
+
+    const folderMap = {
+      'selfie': 'Selfie' as const,
+      'aadhar_front': 'Aadhar Card' as const,
+      'aadhar_back': 'Aadhar Card' as const,
+      'pan': 'Pan Card' as const
+    };
+
+    const folder = folderMap[target];
+    const fileName = `${target}_${Date.now()}.jpg`;
+    const uploadedUrl = await supabaseService.uploadKYCDocument(folder, fileName, dataUrl);
+
+    if (target === 'selfie') setSelfieUrl(uploadedUrl);
+    if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
+    if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
+    if (target === 'pan') setPanUrl(uploadedUrl);
 
     stopCamera();
-    showToast('Document photo captured successfully!', 'success');
+    showToast(`Document captured & stored in Documents/${folder} successfully!`, 'success');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'selfie' | 'aadhar_front' | 'aadhar_back' | 'pan') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'selfie' | 'aadhar_front' | 'aadhar_back' | 'pan') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      if (target === 'selfie') setSelfieUrl(result);
-      if (target === 'aadhar_front') setAadharFrontUrl(result);
-      if (target === 'aadhar_back') setAadharBackUrl(result);
-      if (target === 'pan') setPanUrl(result);
-      showToast('Document uploaded successfully!', 'success');
+    const folderMap = {
+      'selfie': 'Selfie' as const,
+      'aadhar_front': 'Aadhar Card' as const,
+      'aadhar_back': 'Aadhar Card' as const,
+      'pan': 'Pan Card' as const
     };
-    reader.readAsDataURL(file);
+
+    const folder = folderMap[target];
+    const uploadedUrl = await supabaseService.uploadKYCDocument(folder, file.name, file);
+
+    if (target === 'selfie') setSelfieUrl(uploadedUrl);
+    if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
+    if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
+    if (target === 'pan') setPanUrl(uploadedUrl);
+
+    showToast(`Document uploaded to Documents/${folder} successfully!`, 'success');
   };
 
   const completedDocsCount = [selfieUrl, aadharFrontUrl, aadharBackUrl, panUrl].filter(Boolean).length;

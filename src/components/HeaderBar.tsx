@@ -4,15 +4,20 @@ import {
   ShieldCheck, 
   AlertCircle, 
   UserCircle2, 
-  LogIn
+  LogIn,
+  Building2,
+  Users
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const HeaderBar: React.FC = () => {
   const { 
     user, 
+    userRole,
+    setUserRole,
     activeTab, 
     setActiveTab, 
+    pendingApplicationsCount,
     setAuthModalOpen, 
     setAuthMode
   } = useApp();
@@ -26,9 +31,11 @@ export const HeaderBar: React.FC = () => {
         onClick={() => setActiveTab('home')}
         className="flex items-center gap-2 text-left group"
       >
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 p-0.5 shadow-md flex items-center justify-center">
-          <span className="text-white font-extrabold text-base tracking-tighter">₹</span>
-        </div>
+        <img 
+          src="https://i.ibb.co/9kKQLfDf/ip-logo.png" 
+          alt="DhanSetu Logo" 
+          className="w-8 h-8 rounded-xl object-contain bg-white shadow-md border border-slate-200 p-0.5" 
+        />
         <div>
           <div className="flex items-center gap-1">
             <span className="font-bold text-slate-900 text-[15px] tracking-tight group-hover:text-emerald-600 transition-colors">
@@ -45,9 +52,41 @@ export const HeaderBar: React.FC = () => {
       <div className="flex items-center gap-1.5">
         {user ? (
           <>
+            {/* Retailer Quick Switch Button */}
+            {activeTab === 'retailer' ? (
+              <button
+                onClick={() => {
+                  setUserRole('customer');
+                  setActiveTab('home');
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 bg-slate-900 text-white rounded-full text-[10px] font-bold shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
+                title="Switch to Customer view"
+              >
+                <Users className="w-3 h-3 text-emerald-400" />
+                <span>Customer App</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setUserRole('retailer');
+                  setActiveTab('retailer');
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-full text-[10px] text-amber-900 font-bold transition-all shadow-xs cursor-pointer"
+                title="Open Retailer Approval Portal"
+              >
+                <Building2 className="w-3 h-3 text-amber-700" />
+                <span>Retailer</span>
+                {pendingApplicationsCount > 0 && (
+                  <span className="w-4 h-4 bg-amber-600 text-white rounded-full flex items-center justify-center text-[9px] font-mono font-bold animate-pulse">
+                    {pendingApplicationsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             <span 
               onClick={() => setActiveTab('profile')} 
-              className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 cursor-pointer"
+              className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 cursor-pointer hidden sm:inline-block"
               title="Your Unique Customer ID"
             >
               {user.customerId}
@@ -60,12 +99,12 @@ export const HeaderBar: React.FC = () => {
                 title="KYC Verified"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-[10px]">KYC Verified</span>
+                <span className="text-[10px]">KYC</span>
               </button>
             ) : (
               <button
                 onClick={() => setActiveTab('kyc')}
-                className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] text-amber-700 font-medium hover:bg-amber-100 transition-all animate-pulse"
+                className="flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-full text-[11px] text-amber-700 font-medium hover:bg-amber-100 transition-all animate-pulse"
                 title="Complete mandatory KYC"
               >
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />

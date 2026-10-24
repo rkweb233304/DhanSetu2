@@ -105,8 +105,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenTracker, onOpenLoa
         <div className="p-4 bg-gradient-to-r from-sky-50 via-white to-emerald-50 border border-sky-200 rounded-3xl shadow-sm">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="flex items-center gap-1.5 font-bold text-sky-800">
-              <Clock className="w-3.5 h-3.5 animate-spin text-sky-600" />
-              Real-Time Approval Tracking
+              <Clock className="w-3.5 h-3.5 text-sky-600" />
+              <span>Loan Request Status</span>
             </span>
             <span className="font-mono text-[11px] text-slate-500">#{activeApplication.id}</span>
           </div>
@@ -121,12 +121,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenTracker, onOpenLoa
 
             {/* PERCENTILE BADGE */}
             <div className="text-right flex flex-col items-end">
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 border border-emerald-300 rounded-xl text-emerald-800 font-extrabold text-xs shadow-xs">
+              <div className={`inline-flex items-center gap-1 px-2.5 py-1 border rounded-xl font-extrabold text-xs shadow-xs ${
+                activeApplication.retailerStatus === 'approved' || activeApplication.currentStage === 'disbursed'
+                  ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                  : 'bg-amber-100 border-amber-300 text-amber-900'
+              }`}>
                 <Percent className="w-3 h-3" />
-                <span>{activeApplication.stageProgress}% Completed</span>
+                <span>
+                  {activeApplication.retailerStatus === 'approved' || activeApplication.currentStage === 'disbursed'
+                    ? '100% Disbursed'
+                    : 'Pending Retailer Approval'}
+                </span>
               </div>
-              <span className="text-[10px] text-sky-700 font-semibold block capitalize mt-1">
-                Phase: {activeApplication.currentStage.replace(/_/g, ' ')}
+              <span className="text-[10px] text-slate-500 font-medium block mt-1">
+                {activeApplication.retailerStatus === 'approved'
+                  ? 'Sanctioned by Retailer'
+                  : 'Awaiting Retailer Sign-off'}
               </span>
             </div>
           </div>

@@ -106,9 +106,11 @@ export const AuthModal: React.FC = () => {
 
         {/* Modal Header */}
         <div className="text-center mt-2 mb-4">
-          <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-emerald-600/20 mb-2">
-            ₹
-          </div>
+          <img 
+            src="https://i.ibb.co/9kKQLfDf/ip-logo.png" 
+            alt="DhanSetu Logo" 
+            className="w-12 h-12 mx-auto rounded-2xl object-contain bg-white shadow-lg shadow-emerald-600/20 border border-slate-200 p-1 mb-2" 
+          />
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             {authMode === 'login' && 'DhanSetu Secure Login'}
             {authMode === 'register' && 'Create DhanSetu Account'}

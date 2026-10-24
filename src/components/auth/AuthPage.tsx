@@ -9,13 +9,14 @@ import {
   ShieldCheck, 
   KeyRound, 
   CheckCircle2,
-  Copy
+  Copy,
+  Building2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabaseService } from '../../services/supabaseService';
 
 export const AuthPage: React.FC = () => {
-  const { setUser, setActiveTab, showToast } = useApp();
+  const { setUser, setUserRole, setActiveTab, showToast } = useApp();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   
@@ -93,9 +94,10 @@ export const AuthPage: React.FC = () => {
     setIsLoading(true);
     try {
       const newUser = await supabaseService.registerOrLogin(registerMobile, createPin, fullName, emailId);
+      newUser.role = 'customer';
       setIsLoading(false);
       setRegisteredUser(newUser);
-      showToast(`Account registered! Customer ID: ${newUser.customerId}`, 'success');
+      showToast(`Account registered! Your Customer ID is: ${newUser.customerId}`, 'success');
     } catch (err: any) {
       setIsLoading(false);
       showToast('Registration error: ' + err.message, 'error');
@@ -105,8 +107,14 @@ export const AuthPage: React.FC = () => {
   const handleProceedAfterRegistration = () => {
     if (registeredUser) {
       setUser(registeredUser);
-      setActiveTab('home');
-      showToast('Welcome to DhanSetu! Complete your KYC to unlock personal loans.', 'info');
+      setUserRole(registeredUser.role || 'customer');
+      if (registeredUser.role === 'retailer') {
+        setActiveTab('retailer');
+        showToast('Welcome Retailer! You can now review and approve customer loans.', 'success');
+      } else {
+        setActiveTab('home');
+        showToast('Welcome to DhanSetu! Complete your KYC to unlock personal loans.', 'info');
+      }
     }
   };
 
@@ -116,9 +124,11 @@ export const AuthPage: React.FC = () => {
         
         {/* App Logo & Title (Simple, Short Theme) */}
         <div className="text-center mb-5">
-          <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xl font-black shadow-md shadow-emerald-600/20 mb-2">
-            ₹
-          </div>
+          <img 
+            src="https://i.ibb.co/9kKQLfDf/ip-logo.png" 
+            alt="DhanSetu Logo" 
+            className="w-12 h-12 mx-auto rounded-2xl object-contain bg-white shadow-md shadow-emerald-600/20 border border-slate-200 p-1 mb-2" 
+          />
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">DhanSetu</h1>
           <p className="text-[11px] text-slate-500 mt-0.5">
             Instant Credit & Personal Loans
@@ -261,6 +271,7 @@ export const AuthPage: React.FC = () => {
             {/* REGISTER FORM */}
             {mode === 'register' && (
               <form onSubmit={handleRegisterSubmit} className="space-y-3">
+
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                     Full Name

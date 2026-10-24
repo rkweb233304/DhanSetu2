@@ -9,7 +9,8 @@ import {
   Play,
   RotateCw,
   Percent,
-  Check
+  Check,
+  Building2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -23,6 +24,7 @@ export const ApplicationTrackerModal: React.FC<ApplicationTrackerModalProps> = (
     activeApplication, 
     simulateNextApplicationStage, 
     user,
+    setUserRole,
     setActiveTab 
   } = useApp();
 
@@ -182,29 +184,65 @@ export const ApplicationTrackerModal: React.FC<ApplicationTrackerModalProps> = (
           })}
         </div>
 
-        {/* Real-time progression simulator button */}
-        {!isDisbursed && (
+        {/* Retailer Action Status Footer */}
+        {activeApplication.retailerStatus === 'pending' || activeApplication.currentStage === 'submitted' ? (
           <div className="pt-3 border-t border-slate-200 space-y-2">
-            <button
-              onClick={handleAdvanceStage}
-              disabled={isSimulating}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isSimulating ? (
-                <>
-                  <RotateCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Advancing Approval Engine...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Simulate Next Approval Step</span>
-                </>
-              )}
-            </button>
-            <span className="text-[10px] text-slate-500 block text-center">
-              Real-time loan underwriting pipeline (Advances percentile towards 100%)
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs space-y-1.5">
+              <div className="flex items-center gap-1.5 text-amber-900 font-bold">
+                <Clock className="w-4 h-4 text-amber-600 animate-spin" />
+                <span>Pending Retailer Approval</span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Normal users cannot self-approve loans. Your request is queued in the DhanSetu Retailer Portal for verification & disbursal.
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  setUserRole('retailer');
+                  setActiveTab('retailer');
+                }}
+                className="mt-1 w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Open Retailer Portal to Review & Approve</span>
+              </button>
+            </div>
+            <span className="text-[10px] text-slate-400 block text-center">
+              Customer ID: {user?.customerId || activeApplication.customerId}
             </span>
+          </div>
+        ) : activeApplication.retailerStatus === 'rejected' ? (
+          <div className="pt-3 border-t border-slate-200">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-rose-900">
+                <X className="w-4 h-4 text-rose-600" />
+                <span>Application Declined by Retailer</span>
+              </div>
+              <p className="text-[11px] text-rose-700">
+                {activeApplication.rejectionReason || 'Underwriting eligibility threshold not satisfied.'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="pt-3 border-t border-slate-200 space-y-2">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-1 text-emerald-900">
+              <div className="flex items-center gap-1.5 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Approved & Disbursed by Retailer</span>
+              </div>
+              <p className="text-[11px] text-slate-600">
+                Disbursal Ref: {activeApplication.sanctionLetterId} · Funds credited to wallet.
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  setActiveTab('payments');
+                }}
+                className="mt-1 w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>View Repayments & EMIs</span>
+              </button>
+            </div>
           </div>
         )}
 

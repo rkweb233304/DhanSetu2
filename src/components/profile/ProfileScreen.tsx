@@ -31,13 +31,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
   const { 
     user, 
     logout, 
+    setUserRole,
+    pendingApplicationsCount,
     setActiveTab, 
     showToast 
   } = useApp();
 
-  // Modals state
   const [activeModal, setActiveModal] = useState<'agreement' | 'contact' | 'report' | 'logout' | null>(null);
-  const [previewDocUrl, setPreviewDocUrl] = useState<{ title: string; url: string } | null>(null);
 
   // Agreement state
   const [agreementAccepted, setAgreementAccepted] = useState(true);
@@ -96,15 +96,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
         <div className="flex items-center gap-3.5">
           <div className="relative shrink-0">
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 border-2 border-emerald-500/30 overflow-hidden flex items-center justify-center">
-              {user?.kyc?.selfieUrl ? (
-                <img 
-                  src={user.kyc.selfieUrl} 
-                  alt={user.fullName || 'User'} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="w-7 h-7 text-emerald-600" />
-              )}
+              <User className="w-7 h-7 text-emerald-600" />
             </div>
             {isKYCCompleted && (
               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white" title="KYC Verified">
@@ -162,82 +154,74 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
         </div>
       </div>
 
-      {/* 2. KYC DOCUMENTS VAULT (COMPACT & SIMPLE) */}
+      {/* 2. KYC DOCUMENTS STATUS (DOCUMENTS SECURELY MASKED & STORED IN DOCUMENTS BUCKET) */}
       <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-bold text-slate-900">KYC Document Vault</h3>
+            <h3 className="text-xs font-bold text-slate-900">KYC Verification Status</h3>
           </div>
           <button
             onClick={() => setActiveTab('kyc')}
             className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
           >
-            <span>{isKYCCompleted ? 'Manage' : 'Complete KYC'}</span>
+            <span>{isKYCCompleted ? 'Verified' : 'Complete KYC'}</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
-          {/* Selfie */}
-          <button 
-            onClick={() => user?.kyc?.selfieUrl ? setPreviewDocUrl({ title: 'Live Selfie', url: user.kyc.selfieUrl }) : setActiveTab('kyc')}
-            className="p-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-center transition-all cursor-pointer"
-          >
-            <div className="h-10 rounded-lg overflow-hidden bg-white mb-1 flex items-center justify-center">
-              {user?.kyc?.selfieUrl ? (
-                <img src={user.kyc.selfieUrl} alt="Selfie" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-4 h-4 text-slate-400" />
-              )}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Selfie status */}
+          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-medium text-slate-700 block truncate">Selfie</span>
-          </button>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-slate-900 block truncate">Live Selfie</span>
+              <span className="text-[9px] text-emerald-700 font-medium block">
+                {user?.kyc?.selfieUrl ? 'Secured in Vault' : 'Pending'}
+              </span>
+            </div>
+          </div>
 
-          {/* Aadhaar Front */}
-          <button 
-            onClick={() => user?.kyc?.aadharFrontUrl ? setPreviewDocUrl({ title: 'Aadhaar Card Front', url: user.kyc.aadharFrontUrl }) : setActiveTab('kyc')}
-            className="p-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-center transition-all cursor-pointer"
-          >
-            <div className="h-10 rounded-lg overflow-hidden bg-white mb-1 flex items-center justify-center">
-              {user?.kyc?.aadharFrontUrl ? (
-                <img src={user.kyc.aadharFrontUrl} alt="Aadhaar Front" className="w-full h-full object-cover" />
-              ) : (
-                <Shield className="w-4 h-4 text-slate-400" />
-              )}
+          {/* Aadhaar Front status */}
+          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-medium text-slate-700 block truncate">Aadhaar F</span>
-          </button>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Front</span>
+              <span className="text-[9px] text-emerald-700 font-medium block">
+                {user?.kyc?.aadharFrontUrl ? 'Secured in Vault' : 'Pending'}
+              </span>
+            </div>
+          </div>
 
-          {/* Aadhaar Back */}
-          <button 
-            onClick={() => user?.kyc?.aadharBackUrl ? setPreviewDocUrl({ title: 'Aadhaar Card Back', url: user.kyc.aadharBackUrl }) : setActiveTab('kyc')}
-            className="p-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-center transition-all cursor-pointer"
-          >
-            <div className="h-10 rounded-lg overflow-hidden bg-white mb-1 flex items-center justify-center">
-              {user?.kyc?.aadharBackUrl ? (
-                <img src={user.kyc.aadharBackUrl} alt="Aadhaar Back" className="w-full h-full object-cover" />
-              ) : (
-                <Shield className="w-4 h-4 text-slate-400" />
-              )}
+          {/* Aadhaar Back status */}
+          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-medium text-slate-700 block truncate">Aadhaar B</span>
-          </button>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Back</span>
+              <span className="text-[9px] text-emerald-700 font-medium block">
+                {user?.kyc?.aadharBackUrl ? 'Secured in Vault' : 'Pending'}
+              </span>
+            </div>
+          </div>
 
-          {/* PAN Card */}
-          <button 
-            onClick={() => user?.kyc?.panUrl ? setPreviewDocUrl({ title: 'PAN Card', url: user.kyc.panUrl }) : setActiveTab('kyc')}
-            className="p-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-center transition-all cursor-pointer"
-          >
-            <div className="h-10 rounded-lg overflow-hidden bg-white mb-1 flex items-center justify-center">
-              {user?.kyc?.panUrl ? (
-                <img src={user.kyc.panUrl} alt="PAN Card" className="w-full h-full object-cover" />
-              ) : (
-                <FileText className="w-4 h-4 text-slate-400" />
-              )}
+          {/* PAN Card status */}
+          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-medium text-slate-700 block truncate">PAN Card</span>
-          </button>
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-slate-900 block truncate">PAN Card</span>
+              <span className="text-[9px] text-emerald-700 font-medium block">
+                {user?.kyc?.panUrl ? 'Secured in Vault' : 'Pending'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -396,7 +380,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
                 <div className="border-l-2 border-emerald-500 pl-2.5">
                   <h4 className="font-bold text-slate-900 text-[11px]">3. Disbursement & Repayment Conditions</h4>
                   <p className="text-[11px] text-slate-600 mt-0.5">
-                    Disbursals are processed directly to the borrower's verified bank account or DhanSetu Wallet. EMIs are payable via official verified UPI (<span className="font-mono font-bold text-emerald-800">ranjeetk85761@axl</span>), Net Banking, or e-NACH mandate.
+                    Disbursals are processed directly to the borrower's verified bank account or DhanSetu Wallet. EMIs are payable via official verified UPI QR code, DhanSetu Wallet, or e-NACH mandate.
                   </p>
                 </div>
 
@@ -733,29 +717,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
                 Yes, Log Out
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* DOCUMENT PREVIEW MODAL */}
-      {previewDocUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-4 text-slate-900 space-y-3 shadow-2xl">
-            <div className="flex justify-between items-center">
-              <h4 className="text-xs font-bold text-slate-900">{previewDocUrl.title}</h4>
-              <button onClick={() => setPreviewDocUrl(null)} className="p-1 text-slate-400 hover:text-slate-700 text-xs">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="max-h-80 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
-              <img src={previewDocUrl.url} alt={previewDocUrl.title} className="w-full h-auto object-contain" />
-            </div>
-            <button
-              onClick={() => setPreviewDocUrl(null)}
-              className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}

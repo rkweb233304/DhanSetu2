@@ -1,4 +1,4 @@
-export type UserRole = 'borrower' | 'admin';
+export type UserRole = 'customer' | 'retailer' | 'admin';
 
 export interface KYCDocuments {
   selfieUrl?: string;
@@ -18,6 +18,9 @@ export interface KYCDocuments {
 export interface UserProfile {
   id: string;
   customerId: string; // Format: DSYYYYMMDD01 e.g. DS2026102401
+  role?: UserRole; // 'customer' or 'retailer'
+  retailerId?: string; // e.g. RT-DHAN-9021
+  retailerStoreName?: string; // e.g. DhanSetu Partner Store
   email: string;
   fullName: string;
   phoneNumber: string;
@@ -51,15 +54,22 @@ export interface LoanOffer {
 
 export type ApplicationStage = 
   | 'submitted'
+  | 'retailer_review'
   | 'document_verification'
   | 'credit_assessment'
   | 'sanction_issued'
+  | 'approved'
   | 'disbursed'
   | 'rejected';
 
 export interface LoanApplication {
   id: string;
   customerId?: string;
+  customerName?: string;
+  customerMobile?: string;
+  customerCibil?: number;
+  customerEmployment?: string;
+  customerBank?: string;
   loanId: string;
   loanTitle: string;
   requestedAmount: number;
@@ -75,6 +85,12 @@ export interface LoanApplication {
   stageProgress: number; // 0 to 100
   disbursementTxId?: string;
   sanctionLetterId?: string;
+  retailerStatus?: 'pending' | 'approved' | 'rejected';
+  retailerId?: string;
+  retailerName?: string;
+  retailerApprovedAt?: string;
+  rejectionReason?: string;
+  disbursalChannel?: 'wallet' | 'bank';
   history: {
     stage: ApplicationStage;
     title: string;

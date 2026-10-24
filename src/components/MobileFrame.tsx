@@ -48,9 +48,11 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({ children, onOpenSupaba
       {/* Top App Environment Control Bar */}
       <header className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-3 py-2 px-3 mb-2 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl text-xs text-slate-300">
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xs">
-            ₹
-          </div>
+          <img 
+            src="https://i.ibb.co/9kKQLfDf/ip-logo.png" 
+            alt="DhanSetu Logo" 
+            className="w-6 h-6 rounded-lg object-contain bg-white border border-emerald-500/40 p-0.5" 
+          />
           <div className="flex items-center gap-1.5">
             <span className="font-semibold text-white tracking-tight">DhanSetu</span>
             <span className="text-slate-500 font-mono text-[11px]">com.app.dhansetu</span>

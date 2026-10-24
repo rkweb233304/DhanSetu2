@@ -7,6 +7,7 @@ import { LoansScreen } from './components/loans/LoansScreen';
 import { PaymentsScreen } from './components/payments/PaymentsScreen';
 import { ProfileScreen } from './components/profile/ProfileScreen';
 import { KYCScreen } from './components/kyc/KYCScreen';
+import { RetailerScreen } from './components/retailer/RetailerScreen';
 import { AuthPage } from './components/auth/AuthPage';
 import { ApplicationTrackerModal } from './components/loans/ApplicationTrackerModal';
 import { SupabaseModal } from './components/common/SupabaseModal';
@@ -86,6 +87,7 @@ function DhanSetuApp() {
           {activeTab === 'profile' && (
             <ProfileScreen onOpenSupabaseModal={() => setSupabaseModalOpen(true)} />
           )}
+          {activeTab === 'retailer' && <RetailerScreen />}
           {activeTab === 'kyc' && <KYCScreen />}
         </div>
 
