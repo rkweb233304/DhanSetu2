@@ -8,7 +8,7 @@ import {
   ChevronRight, 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { WithdrawLoanAmountModal } from '../loans/WithdrawLoanAmountModal';
+import { WithdrawLoanModal } from '../loans/WithdrawLoanModal';
 
 interface HomeScreenProps {
 }
@@ -46,14 +46,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             </span>
           </div>
         </div>
-        <div className="text-right">
-          <span className="text-[10px] text-slate-500 block">CIBIL Score</span>
-          <div className="flex items-center justify-end gap-1 text-emerald-600 font-bold text-xs">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>{user?.cibilScore || 750}</span>
-            <span className="text-[9px] text-slate-500 font-normal">/ 900</span>
-          </div>
-        </div>
       </div>
 
       {/* MANDATORY KYC BANNER */}
@@ -88,7 +80,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       )}
 
       {/* LOAN APPLICATION STATUS TRACKER */}
-      {activeApplication && (
+      {activeApplication && activeApplication.currentStage !== 'approved' && (
         <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
           <h3 className="text-xs font-bold text-slate-900 mb-3">Application Status: {activeApplication.currentStage}</h3>
           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -100,41 +92,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           <p className="text-[10px] text-slate-500 mt-1.5">{activeApplication.stageProgress}% Complete</p>
         </div>
       )}
+
+      {/* CONGRATULATIONS BANNER */}
+      {activeApplication && activeApplication.currentStage === 'approved' && (
+        <div className="p-5 bg-emerald-600 rounded-2xl shadow-lg text-white">
+          <h3 className="text-lg font-bold">Congratulations!</h3>
+          <p className="text-sm opacity-90 mb-4">Your loan application for {activeApplication.loanTitle} has been approved.</p>
+          <button onClick={() => setShowWithdrawModal(true)} className="w-full py-2 bg-white text-emerald-600 rounded-xl font-bold">Withdraw Amount</button>
+        </div>
+      )}
       
-      {/* OUTSTANDING BALANCE */}
-      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
-         <div>
-           <span className="text-[10px] text-slate-500 font-medium">Outstanding Balance</span>
-           <h3 className="text-lg font-bold text-slate-900">₹0</h3>
-         </div>
-         <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-           <TrendingUp className="w-5 h-5" />
-         </div>
+      {/* CREDIT LIMIT */}
+      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <span className="text-[10px] text-slate-500 font-medium">Available Credit Limit</span>
+        <h3 className="text-2xl font-bold text-slate-900">
+          {isKYCCompleted ? '₹5,00,000' : 'Up to ₹1,00,000'}
+        </h3>
       </div>
 
-      {/* LOAN WITHDRAW BUTTON (SHOW ONLY IF KYC COMPLETED) */}
-      {isKYCCompleted && activeApplication && activeApplication.currentStage === 'approved' && (
-        <button
-          onClick={() => setShowWithdrawModal(true)}
-          className="w-full py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md"
-        >
-          Withdraw Approved Amount
-        </button>
-      )}
-
       {/* QUICK ACTIONS ROW */}
-      <div className="grid grid-cols-2 gap-2 text-center">
-        <button
-          onClick={() => setActiveTab('payments')}
-          className="p-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-colors group shadow-sm cursor-pointer"
-        >
-          <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <CreditCard className="w-5 h-5" />
-          </div>
-          <span className="text-[11px] font-bold text-slate-800">Payments</span>
-          <span className="text-[9px] text-emerald-700 font-mono font-medium">Pay Now</span>
-        </button>
-
+      <div className="grid grid-cols-1 gap-2 text-center">
         <button
           onClick={() => setActiveTab('kyc')}
           className="p-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-colors group shadow-sm cursor-pointer"
@@ -149,7 +126,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         </button>
       </div>
 
-      {showWithdrawModal && <WithdrawLoanAmountModal onClose={() => setShowWithdrawModal(false)} />}
+      {showWithdrawModal && <WithdrawLoanModal onClose={() => setShowWithdrawModal(false)} />}
     </div>
   );
 };

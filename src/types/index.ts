@@ -10,6 +10,20 @@ export interface KYCDocuments {
   panUrl?: string;
   panNumber?: string;
   panStatus: 'pending' | 'submitted' | 'verified' | 'rejected';
+  
+  // New Fields
+  fullName?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
+  state?: string;
+  nomineeName?: string;
+  nomineeMobile?: string;
+  nomineeRelation?: string;
+  guarantorName?: string;
+  guarantorMobile?: string;
+  guarantorRelation?: string;
+  
   overallStatus: 'not_started' | 'submitted' | 'in_review' | 'verified' | 'rejected';
   verifiedAt?: string;
   rejectionReason?: string;
@@ -24,7 +38,6 @@ export interface UserProfile {
   email: string;
   fullName: string;
   phoneNumber: string;
-  cibilScore: number;
   monthlyIncome: number;
   employmentType: 'Salaried' | 'Self-Employed' | 'Business';
   bankName: string;

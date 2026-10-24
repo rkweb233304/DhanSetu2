@@ -444,7 +444,24 @@ export const PaymentsScreen: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* UPI DIRECT PAYMENT BOX removed */}
+                  {/* UPI DIRECT PAYMENT INSTRUCTION */}
+                  <div className="p-3 bg-slate-100 rounded-xl border border-slate-200">
+                    <p className="text-[10px] text-slate-600 mb-2">
+                      Please copy the official UPI ID and make payment from any UPI app.
+                    </p>
+                    <div className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                      <span className="text-xs font-mono font-bold text-slate-800">
+                        {OFFICIAL_REPAYMENT_UPI_ID}
+                      </span>
+                      <button 
+                        type="button"
+                        onClick={handleCopyUpi}
+                        className="text-emerald-600 hover:text-emerald-700 p-1"
+                      >
+                        {copiedUPI ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Submit Button */}
                   <button
