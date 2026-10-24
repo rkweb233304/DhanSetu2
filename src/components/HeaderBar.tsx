@@ -52,38 +52,6 @@ export const HeaderBar: React.FC = () => {
       <div className="flex items-center gap-1.5">
         {user ? (
           <>
-            {/* Retailer Quick Switch Button */}
-            {activeTab === 'retailer' ? (
-              <button
-                onClick={() => {
-                  setUserRole('customer');
-                  setActiveTab('home');
-                }}
-                className="flex items-center gap-1 px-2.5 py-1 bg-slate-900 text-white rounded-full text-[10px] font-bold shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
-                title="Switch to Customer view"
-              >
-                <Users className="w-3 h-3 text-emerald-400" />
-                <span>Customer App</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setUserRole('retailer');
-                  setActiveTab('retailer');
-                }}
-                className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-full text-[10px] text-amber-900 font-bold transition-all shadow-xs cursor-pointer"
-                title="Open Retailer Approval Portal"
-              >
-                <Building2 className="w-3 h-3 text-amber-700" />
-                <span>Retailer</span>
-                {pendingApplicationsCount > 0 && (
-                  <span className="w-4 h-4 bg-amber-600 text-white rounded-full flex items-center justify-center text-[9px] font-mono font-bold animate-pulse">
-                    {pendingApplicationsCount}
-                  </span>
-                )}
-              </button>
-            )}
-
             <span 
               onClick={() => setActiveTab('profile')} 
               className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 cursor-pointer hidden sm:inline-block"

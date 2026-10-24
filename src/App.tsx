@@ -3,20 +3,17 @@ import { AppProvider, useApp } from './context/AppContext';
 import { HeaderBar } from './components/HeaderBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/home/HomeScreen';
-import { LoansScreen } from './components/loans/LoansScreen';
 import { PaymentsScreen } from './components/payments/PaymentsScreen';
 import { ProfileScreen } from './components/profile/ProfileScreen';
 import { KYCScreen } from './components/kyc/KYCScreen';
 import { RetailerScreen } from './components/retailer/RetailerScreen';
 import { AuthPage } from './components/auth/AuthPage';
-import { ApplicationTrackerModal } from './components/loans/ApplicationTrackerModal';
 import { SupabaseModal } from './components/common/SupabaseModal';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 function DhanSetuApp() {
   const { activeTab, setActiveTab, toastMessage, user } = useApp();
 
-  const [trackerModalOpen, setTrackerModalOpen] = useState(false);
   const [supabaseModalOpen, setSupabaseModalOpen] = useState(false);
 
   // If user is not logged in, render the dedicated full-page Login & Register directly (NO POPUP)
@@ -73,13 +70,7 @@ function DhanSetuApp() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar pb-24">
           {activeTab === 'home' && (
-            <HomeScreen
-              onOpenTracker={() => setTrackerModalOpen(true)}
-              onOpenLoanApply={() => setActiveTab('loans')}
-            />
-          )}
-          {activeTab === 'loans' && (
-            <LoansScreen onOpenTracker={() => setTrackerModalOpen(true)} />
+            <HomeScreen />
           )}
           {(activeTab === 'payments' || (activeTab as any) === 'wallet') && (
             <PaymentsScreen />
@@ -100,10 +91,6 @@ function DhanSetuApp() {
       </div>
 
       {/* Overlays and Modals */}
-      <ApplicationTrackerModal
-        isOpen={trackerModalOpen}
-        onClose={() => setTrackerModalOpen(false)}
-      />
       <SupabaseModal
         isOpen={supabaseModalOpen}
         onClose={() => setSupabaseModalOpen(false)}

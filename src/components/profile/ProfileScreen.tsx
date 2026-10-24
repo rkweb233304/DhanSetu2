@@ -112,11 +112,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
               </h2>
               {isKYCCompleted ? (
                 <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.2 rounded">
-                  Verified
+                  Completed
                 </span>
               ) : (
                 <span className="text-[10px] bg-amber-100 text-amber-700 font-medium px-1.5 py-0.2 rounded">
-                  KYC Pending
+                  Pending
                 </span>
               )}
             </div>
@@ -155,75 +155,77 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
       </div>
 
       {/* 2. KYC DOCUMENTS STATUS (DOCUMENTS SECURELY MASKED & STORED IN DOCUMENTS BUCKET) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-bold text-slate-900">KYC Verification Status</h3>
+      {!isKYCCompleted && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <h3 className="text-xs font-bold text-slate-900">KYC Verification Status</h3>
+            </div>
+            <button
+              onClick={() => setActiveTab('kyc')}
+              className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
+            >
+              <span>{isKYCCompleted ? 'Verified' : 'Complete KYC'}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button
-            onClick={() => setActiveTab('kyc')}
-            className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
-          >
-            <span>{isKYCCompleted ? 'Verified' : 'Complete KYC'}</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            {/* Selfie status */}
+            <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold text-slate-900 block truncate">Live Selfie</span>
+                <span className="text-[9px] text-emerald-700 font-medium block">
+                  {user?.kyc?.selfieUrl ? 'Secured in Vault' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Aadhaar Front status */}
+            <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Front</span>
+                <span className="text-[9px] text-emerald-700 font-medium block">
+                  {user?.kyc?.aadharFrontUrl ? 'Secured in Vault' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Aadhaar Back status */}
+            <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Back</span>
+                <span className="text-[9px] text-emerald-700 font-medium block">
+                  {user?.kyc?.aadharBackUrl ? 'Secured in Vault' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* PAN Card status */}
+            <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold text-slate-900 block truncate">PAN Card</span>
+                <span className="text-[9px] text-emerald-700 font-medium block">
+                  {user?.kyc?.panUrl ? 'Secured in Vault' : 'Pending'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {/* Selfie status */}
-          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold text-slate-900 block truncate">Live Selfie</span>
-              <span className="text-[9px] text-emerald-700 font-medium block">
-                {user?.kyc?.selfieUrl ? 'Secured in Vault' : 'Pending'}
-              </span>
-            </div>
-          </div>
-
-          {/* Aadhaar Front status */}
-          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Front</span>
-              <span className="text-[9px] text-emerald-700 font-medium block">
-                {user?.kyc?.aadharFrontUrl ? 'Secured in Vault' : 'Pending'}
-              </span>
-            </div>
-          </div>
-
-          {/* Aadhaar Back status */}
-          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold text-slate-900 block truncate">Aadhaar Back</span>
-              <span className="text-[9px] text-emerald-700 font-medium block">
-                {user?.kyc?.aadharBackUrl ? 'Secured in Vault' : 'Pending'}
-              </span>
-            </div>
-          </div>
-
-          {/* PAN Card status */}
-          <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-[11px] font-bold text-slate-900 block truncate">PAN Card</span>
-              <span className="text-[9px] text-emerald-700 font-medium block">
-                {user?.kyc?.panUrl ? 'Secured in Vault' : 'Pending'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* 3. REQUESTED CORE PROFILE FEATURES (SIMPLE, SHORT, CLEAN MENU) */}
       <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 overflow-hidden shadow-xs">

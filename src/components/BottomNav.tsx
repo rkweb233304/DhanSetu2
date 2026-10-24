@@ -17,7 +17,6 @@ export const BottomNav: React.FC = () => {
 
   const baseNavItems: { tab: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { tab: 'home', label: 'Home', icon: Home },
-    { tab: 'loans', label: 'Apply', icon: Coins },
     ...(isRetailer ? [{ tab: 'retailer' as TabType, label: 'Retailer', icon: Building2 }] : []),
     { tab: 'payments', label: 'Payments', icon: CreditCard },
     { tab: 'profile', label: 'Profile', icon: User }
