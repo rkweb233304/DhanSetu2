@@ -1,0 +1,6 @@
+{
+  "name": "DhanSetu - Instant Personal Loans",
+  "description": "Cross-platform mobile loan application with real-time approval tracking, digital KYC verification, personal loan calculator, and secure wallet.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
