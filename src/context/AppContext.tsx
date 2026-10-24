@@ -33,7 +33,7 @@ interface AppContextType {
   activeLoans: ActiveLoan[];
   loanOffers: LoanOffer[];
   payments: PaymentRecord[];
-  payEmi: (loanId: string, amount: number, paymentMethod: PaymentRecord['paymentMethod'], payType?: 'emi' | 'custom' | 'full') => Promise<void> | void;
+  payEmi: (loanId: string, amount: number, paymentMethod: PaymentRecord['paymentMethod'], payType?: 'emi' | 'custom' | 'full', customRefId?: string) => Promise<void> | void;
   
   // Applications & Real-time tracking
   applications: LoanApplication[];
@@ -124,7 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loanId: string, 
     amount: number, 
     paymentMethod: PaymentRecord['paymentMethod'],
-    payType: 'emi' | 'custom' | 'full' = 'emi'
+    payType: 'emi' | 'custom' | 'full' = 'emi',
+    customRefId?: string
   ) => {
     const loan = activeLoans.find(l => l.id === loanId);
     if (!loan) return;
@@ -158,7 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     // Record payment in Supabase payments table
-    const refId = `TXN-DS-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const refId = customRefId?.trim() || `TXN-DS-${Math.floor(10000000 + Math.random() * 90000000)}`;
     const newPayment: PaymentRecord = {
       id: `PAY-${Date.now()}`,
       userId: user?.id,

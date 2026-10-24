@@ -391,7 +391,7 @@ export class SupabaseService {
       return profile;
     }
 
-    throw new Error(isCustomerId ? 'Customer ID not found. Please register first or use Demo Login.' : 'Mobile number not registered. Please register first or use Demo Login.');
+    throw new Error(isCustomerId ? 'Customer ID not found. Please check your Customer ID or register a new account.' : 'Mobile number not registered. Please register first.');
   }
 
   public async updateKYC(kycData: Partial<UserProfile['kyc']>): Promise<UserProfile> {

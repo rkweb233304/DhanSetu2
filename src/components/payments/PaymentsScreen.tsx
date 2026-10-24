@@ -12,9 +12,13 @@ import {
   AlertCircle,
   Clock,
   Sparkles,
-  Check
+  Check,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+
+export const OFFICIAL_REPAYMENT_UPI_ID = 'ranjeetk85761@axl';
 
 export const PaymentsScreen: React.FC = () => {
   const { 
@@ -32,6 +36,8 @@ export const PaymentsScreen: React.FC = () => {
   const [selectedMethod, setSelectedMethod] = useState<'UPI' | 'Net Banking' | 'Debit Card'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [copiedUPI, setCopiedUPI] = useState(false);
+  const [upiUtr, setUpiUtr] = useState('');
 
   const activeLoan = activeLoans.length > 0 ? activeLoans[0] : null;
   const totalOutstanding = activeLoans.reduce((sum, l) => sum + l.outstandingBalance, 0);
@@ -43,6 +49,13 @@ export const PaymentsScreen: React.FC = () => {
       : payType === 'full' 
       ? totalOutstanding 
       : customAmount;
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(OFFICIAL_REPAYMENT_UPI_ID);
+    setCopiedUPI(true);
+    showToast(`UPI ID ${OFFICIAL_REPAYMENT_UPI_ID} copied!`, 'success');
+    setTimeout(() => setCopiedUPI(false), 2500);
+  };
 
   const handlePayNowSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +72,12 @@ export const PaymentsScreen: React.FC = () => {
     setIsProcessing(true);
     setTimeout(async () => {
       setIsProcessing(false);
-      await payEmi(activeLoan.id, currentPayAmount, selectedMethod, payType);
+      await payEmi(activeLoan.id, currentPayAmount, selectedMethod, payType, upiUtr);
       setPaymentSuccess(true);
       setTimeout(() => {
         setPaymentSuccess(false);
         setShowPayModal(false);
+        setUpiUtr('');
       }, 1600);
     }, 1000);
   };
@@ -220,24 +234,56 @@ export const PaymentsScreen: React.FC = () => {
         </span>
       </div>
 
-      {/* BENEFICIARY BANK INFO */}
-      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-2">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-          <Building2 className="w-4 h-4 text-slate-500" />
-          <span>Registered Payment Account</span>
+      {/* BENEFICIARY BANK & OFFICIAL UPI INFO */}
+      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
+        {/* Official Repayment UPI ID Highlight */}
+        <div className="p-3 bg-emerald-50/80 border border-emerald-300 rounded-xl">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+              <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+              Official Repayment UPI ID
+            </span>
+            <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold">
+              Verified Payee
+            </span>
+          </div>
+          <div className="flex items-center justify-between mt-1.5">
+            <span className="text-xs font-mono font-black text-slate-900 tracking-wide select-all">
+              {OFFICIAL_REPAYMENT_UPI_ID}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyUpi}
+              className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-bold text-emerald-800 flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+            >
+              {copiedUPI ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+              <span>{copiedUPI ? 'Copied!' : 'Copy UPI'}</span>
+            </button>
+          </div>
+          <p className="text-[9px] text-slate-500 mt-1">
+            Pay anytime from Google Pay, PhonePe, Paytm, or BHIM.
+          </p>
         </div>
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Bank:</span>
-            <span className="font-semibold text-slate-900">{user?.bankName || 'State Bank of India'}</span>
+
+        {/* User Linked Bank */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+            <Building2 className="w-4 h-4 text-slate-500" />
+            <span>Your Disbursal & Repayment Bank</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">A/C Number:</span>
-            <span className="font-mono text-slate-700">{user?.accountNumber || '••••••••4892'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">IFSC Code:</span>
-            <span className="font-mono text-slate-700">{user?.ifscCode || 'SBIN0004521'}</span>
+          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Bank:</span>
+              <span className="font-semibold text-slate-900">{user?.bankName || 'State Bank of India'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">A/C Number:</span>
+              <span className="font-mono text-slate-700">{user?.accountNumber || '••••••••4892'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">IFSC Code:</span>
+              <span className="font-mono text-slate-700">{user?.ifscCode || 'SBIN0004521'}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -427,13 +473,82 @@ export const PaymentsScreen: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* UPI DIRECT PAYMENT BOX (ranjeetk85761@axl) */}
+                  {selectedMethod === 'UPI' && (
+                    <div className="p-3 bg-emerald-50/70 border border-emerald-300 rounded-2xl space-y-2.5 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                          <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+                          Pay To UPI ID
+                        </span>
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                          Official Recipient
+                        </span>
+                      </div>
+
+                      {/* UPI ID Display & Copy */}
+                      <div className="flex items-center justify-between bg-white border border-emerald-200 rounded-xl px-3 py-2 shadow-xs">
+                        <div>
+                          <span className="text-[9px] text-slate-400 block font-medium">Beneficiary UPI ID</span>
+                          <span className="text-xs font-mono font-black text-slate-900 select-all">
+                            {OFFICIAL_REPAYMENT_UPI_ID}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyUpi}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-bold text-emerald-800 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          {copiedUPI ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedUPI ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      {/* Scannable Dynamic QR Code */}
+                      <div className="p-2.5 bg-white rounded-xl border border-emerald-200 text-center">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`upi://pay?pa=${OFFICIAL_REPAYMENT_UPI_ID}&pn=DhanSetu&am=${currentPayAmount}&cu=INR&tn=DhanSetu_EMI_Repayment`)}`}
+                          alt="UPI QR Code"
+                          className="w-28 h-28 mx-auto rounded-lg"
+                        />
+                        <span className="text-[10px] text-slate-500 font-medium block mt-1.5">
+                          Scan with PhonePe, Google Pay, Paytm, or BHIM
+                        </span>
+                      </div>
+
+                      {/* Deep-link to open UPI app directly */}
+                      <a
+                        href={`upi://pay?pa=${OFFICIAL_REPAYMENT_UPI_ID}&pn=DhanSetu&am=${currentPayAmount}&cu=INR&tn=DhanSetu_EMI_Repayment`}
+                        className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Pay via UPI App (GPay / PhonePe / Paytm)</span>
+                      </a>
+
+                      {/* UPI Transaction UTR Reference Input */}
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-600 mb-1">
+                          UPI Ref No. / UTR (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={16}
+                          value={upiUtr}
+                          onChange={(e) => setUpiUtr(e.target.value)}
+                          placeholder="e.g. 428901234567"
+                          className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={isProcessing}
                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    {isProcessing ? 'Processing Payment...' : `Confirm & Pay ₹${currentPayAmount.toLocaleString('en-IN')}`}
+                    {isProcessing ? 'Processing Payment...' : `I Have Paid / Confirm ₹${currentPayAmount.toLocaleString('en-IN')}`}
                   </button>
                 </form>
               </>

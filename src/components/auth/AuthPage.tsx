@@ -9,8 +9,7 @@ import {
   ShieldCheck, 
   KeyRound, 
   CheckCircle2,
-  Copy,
-  Sparkles
+  Copy
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabaseService } from '../../services/supabaseService';
@@ -36,21 +35,6 @@ export const AuthPage: React.FC = () => {
   // Registration Success State
   const [registeredUser, setRegisteredUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Quick Demo Login Handler
-  const handleQuickDemoLogin = async () => {
-    setIsLoading(true);
-    try {
-      const demoUser = await supabaseService.registerOrLogin('DS2026102401', '123456');
-      setIsLoading(false);
-      setUser(demoUser);
-      showToast(`Welcome, ${demoUser.fullName}! (${demoUser.customerId})`, 'success');
-      setActiveTab('home');
-    } catch (err: any) {
-      setIsLoading(false);
-      showToast(err.message || 'Demo login failed', 'error');
-    }
-  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,27 +197,6 @@ export const AuthPage: React.FC = () => {
                 Register
               </button>
             </div>
-
-            {/* QUICK ONE-TAP DEMO LOGIN BUTTON */}
-            {mode === 'login' && (
-              <button
-                type="button"
-                onClick={handleQuickDemoLogin}
-                disabled={isLoading}
-                className="w-full mb-3.5 py-2 px-3 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-emerald-300 rounded-xl text-left flex items-center justify-between group cursor-pointer transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                    <Sparkles className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-emerald-950 block">Quick Demo Login</span>
-                    <span className="text-[10px] text-emerald-700 font-mono block">ID: DS2026102401 (PIN: 123456)</span>
-                  </div>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            )}
 
             {/* LOGIN FORM */}
             {mode === 'login' && (

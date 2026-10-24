@@ -396,7 +396,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
                 <div className="border-l-2 border-emerald-500 pl-2.5">
                   <h4 className="font-bold text-slate-900 text-[11px]">3. Disbursement & Repayment Conditions</h4>
                   <p className="text-[11px] text-slate-600 mt-0.5">
-                    Disbursals are processed directly to the borrower's verified bank account or DhanSetu Wallet. EMIs are payable on the assigned date each month via UPI, Net Banking, or e-NACH mandate.
+                    Disbursals are processed directly to the borrower's verified bank account or DhanSetu Wallet. EMIs are payable via official verified UPI (<span className="font-mono font-bold text-emerald-800">ranjeetk85761@axl</span>), Net Banking, or e-NACH mandate.
                   </p>
                 </div>
 

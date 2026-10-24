@@ -5,9 +5,14 @@ import {
   QrCode, 
   ToggleLeft, 
   ToggleRight, 
-  Plus
+  Plus,
+  Copy,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+
+export const OFFICIAL_WALLET_UPI_ID = 'ranjeetk85761@axl';
 
 export const WalletScreen: React.FC = () => {
   const { 
@@ -25,6 +30,14 @@ export const WalletScreen: React.FC = () => {
   const [withdrawAmount, setWithdrawAmount] = useState<number>(10000);
   const [autoPayActive, setAutoPayActive] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [copiedUPI, setCopiedUPI] = useState<boolean>(false);
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(OFFICIAL_WALLET_UPI_ID);
+    setCopiedUPI(true);
+    showToast(`UPI ID ${OFFICIAL_WALLET_UPI_ID} copied!`, 'success');
+    setTimeout(() => setCopiedUPI(false), 2500);
+  };
 
   const handleAddMoney = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,6 +184,41 @@ export const WalletScreen: React.FC = () => {
                   <option value="Debit Card">Debit Card</option>
                 </select>
               </div>
+
+              {/* UPI Payee Info Box */}
+              {addSource.includes('UPI') && (
+                <div className="p-3 bg-emerald-50/70 border border-emerald-300 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                      Pay to DhanSetu UPI ID
+                    </span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
+                      Verified
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white border border-emerald-200 rounded-xl px-2.5 py-1.5 shadow-xs">
+                    <span className="text-xs font-mono font-black text-slate-900 select-all">
+                      {OFFICIAL_WALLET_UPI_ID}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyUpi}
+                      className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded text-[10px] font-bold text-emerald-800 flex items-center gap-1 cursor-pointer"
+                    >
+                      {copiedUPI ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedUPI ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <div className="text-center pt-1">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`upi://pay?pa=${OFFICIAL_WALLET_UPI_ID}&pn=DhanSetu&am=${addAmount}&cu=INR&tn=Wallet_Topup`)}`}
+                      alt="UPI QR Code"
+                      className="w-24 h-24 mx-auto rounded-lg border border-emerald-200 bg-white p-1"
+                    />
+                    <span className="text-[9px] text-slate-500 mt-1 block">Scan or pay directly using any UPI App</span>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
