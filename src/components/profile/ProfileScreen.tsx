@@ -83,6 +83,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
         </button>
       </div>
 
+      {/* UNIQUE CUSTOMER ID BANNER */}
+      <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-white border border-emerald-200/80 rounded-2xl flex items-center justify-between shadow-xs">
+        <div>
+          <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
+            Unique Customer ID
+          </span>
+          <span className="text-xs font-mono font-extrabold text-emerald-950 tracking-wider">
+            {user?.customerId || 'DS2026102401'}
+          </span>
+        </div>
+        <button
+          onClick={() => {
+            if (user?.customerId) {
+              navigator.clipboard.writeText(user.customerId);
+              showToast(`Customer ID ${user.customerId} copied!`, 'success');
+            }
+          }}
+          className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-bold text-emerald-800 shadow-2xs transition-all cursor-pointer"
+        >
+          Copy ID
+        </button>
+      </div>
+
       {/* KYC DOCUMENTS VAULT */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">

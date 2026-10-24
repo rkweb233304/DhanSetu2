@@ -17,6 +17,7 @@ export interface KYCDocuments {
 
 export interface UserProfile {
   id: string;
+  customerId: string; // Format: DSYYYYMMDD01 e.g. DS2026102401
   email: string;
   fullName: string;
   phoneNumber: string;
@@ -58,6 +59,7 @@ export type ApplicationStage =
 
 export interface LoanApplication {
   id: string;
+  customerId?: string;
   loanId: string;
   loanTitle: string;
   requestedAmount: number;
@@ -84,6 +86,7 @@ export interface LoanApplication {
 
 export interface ActiveLoan {
   id: string;
+  customerId?: string;
   loanNumber: string;
   title: string;
   originalAmount: number;
@@ -99,9 +102,12 @@ export interface ActiveLoan {
 
 export interface PaymentRecord {
   id: string;
+  customerId?: string;
+  userId?: string;
   loanId: string;
   loanTitle: string;
   amount: number;
+  paymentType?: 'emi' | 'custom' | 'full';
   emiNumber: number;
   totalEmis: number;
   paymentDate: string;

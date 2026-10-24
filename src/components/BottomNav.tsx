@@ -2,8 +2,8 @@ import React from 'react';
 import { 
   Home, 
   Coins, 
-  Wallet, 
-  User
+  CreditCard, 
+  User 
 } from 'lucide-react';
 import { useApp, TabType } from '../context/AppContext';
 
@@ -15,7 +15,7 @@ export const BottomNav: React.FC = () => {
   const navItems: { tab: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { tab: 'home', label: 'Home', icon: Home },
     { tab: 'loans', label: 'Loans', icon: Coins },
-    { tab: 'wallet', label: 'Wallet', icon: Wallet },
+    { tab: 'payments', label: 'Payments', icon: CreditCard },
     { tab: 'profile', label: 'Profile', icon: User }
   ];
 
@@ -23,16 +23,19 @@ export const BottomNav: React.FC = () => {
     <nav className="h-16 bg-white/95 border-t border-slate-200 flex items-center justify-around px-2 z-50 backdrop-blur-md shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = activeTab === item.tab || (item.tab === 'profile' && activeTab === 'kyc');
+        const isActive = 
+          activeTab === item.tab || 
+          (item.tab === 'profile' && activeTab === 'kyc') ||
+          (item.tab === 'payments' && (activeTab as any) === 'wallet');
         const showWarningDot = item.tab === 'profile' && isKYCPending;
 
         return (
           <button
             key={item.tab}
             onClick={() => setActiveTab(item.tab)}
-            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all relative ${
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all relative cursor-pointer ${
               isActive 
-                ? 'text-emerald-600 font-semibold' 
+                ? 'text-emerald-600 font-bold' 
                 : 'text-slate-500 hover:text-slate-900'
             }`}
           >

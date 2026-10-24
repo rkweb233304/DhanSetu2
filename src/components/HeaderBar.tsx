@@ -42,13 +42,21 @@ export const HeaderBar: React.FC = () => {
       </button>
 
       {/* KYC Status Badge & Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {user ? (
           <>
+            <span 
+              onClick={() => setActiveTab('profile')} 
+              className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 cursor-pointer"
+              title="Your Unique Customer ID"
+            >
+              {user.customerId}
+            </span>
+
             {isKYCVerified ? (
               <button
                 onClick={() => setActiveTab('profile')}
-                className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] text-emerald-700 font-medium hover:bg-emerald-100 transition-colors"
+                className="flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] text-emerald-700 font-medium hover:bg-emerald-100 transition-colors"
                 title="KYC Verified"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

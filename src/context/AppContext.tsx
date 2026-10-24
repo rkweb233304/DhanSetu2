@@ -14,7 +14,7 @@ import {
   INITIAL_LOAN_OFFERS 
 } from '../services/supabaseService';
 
-export type TabType = 'home' | 'loans' | 'wallet' | 'profile' | 'kyc';
+export type TabType = 'home' | 'loans' | 'payments' | 'wallet' | 'profile' | 'kyc';
 export type DeviceFrameType = 'ios' | 'android' | 'fullscreen';
 
 interface AppContextType {
@@ -32,7 +32,7 @@ interface AppContextType {
   activeLoans: ActiveLoan[];
   loanOffers: LoanOffer[];
   payments: PaymentRecord[];
-  payEmi: (loanId: string, amount: number, paymentMethod: PaymentRecord['paymentMethod']) => void;
+  payEmi: (loanId: string, amount: number, paymentMethod: PaymentRecord['paymentMethod'], payType?: 'emi' | 'custom' | 'full') => Promise<void> | void;
   
   // Applications & Real-time tracking
   applications: LoanApplication[];
@@ -71,7 +71,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const [activeLoans, setActiveLoans] = useState<ActiveLoan[]>(() => supabaseService.getActiveLoans());
   const [loanOffers] = useState<LoanOffer[]>(INITIAL_LOAN_OFFERS);
-  const [payments] = useState<PaymentRecord[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => supabaseService.getPaymentHistory());
   const [applications, setApplications] = useState<LoanApplication[]>(() => supabaseService.getApplications());
   const [activeApplication, setActiveApplication] = useState<LoanApplication | null>(null);
   
@@ -110,7 +110,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('KYC documents linked to Supabase successfully', 'success');
   };
 
-  const payEmi = (loanId: string, amount: number, paymentMethod: PaymentRecord['paymentMethod']) => {
+  const payEmi = async (
+    loanId: string, 
+    amount: number, 
+    paymentMethod: PaymentRecord['paymentMethod'],
+    payType: 'emi' | 'custom' | 'full' = 'emi'
+  ) => {
     const loan = activeLoans.find(l => l.id === loanId);
     if (!loan) return;
 
@@ -122,7 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (paymentMethod === 'DhanSetu Wallet') {
       const newBal = Math.max(0, walletBalance - amount);
       setWalletBalance(newBal);
-      supabaseService.setWalletBalance(newBal);
+      await supabaseService.setWalletBalance(newBal);
     }
 
     const newPaidEmis = loan.paidEmis + 1;
@@ -135,8 +140,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } : l);
 
     setActiveLoans(updatedLoans);
-    supabaseService.saveActiveLoans(updatedLoans);
-    showToast(`EMI of ₹${amount.toLocaleString('en-IN')} paid successfully!`, 'success');
+    await supabaseService.saveActiveLoanToTable({
+      ...loan,
+      paidEmis: newPaidEmis,
+      outstandingBalance: newBalance,
+      status: newPaidEmis >= loan.totalEmis || newBalance <= 0 ? 'closed' : 'active'
+    });
+
+    // Record payment in Supabase payments table
+    const refId = `TXN-DS-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const newPayment: PaymentRecord = {
+      id: `PAY-${Date.now()}`,
+      userId: user?.id,
+      loanId: loan.id,
+      loanTitle: loan.title,
+      amount: amount,
+      paymentType: payType,
+      emiNumber: newPaidEmis,
+      totalEmis: loan.totalEmis,
+      paymentDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      paymentMethod: paymentMethod,
+      referenceId: refId,
+      status: 'success'
+    };
+
+    await supabaseService.savePaymentToTable(newPayment);
+    setPayments(supabaseService.getPaymentHistory());
+    showToast(`Payment of ₹${amount.toLocaleString('en-IN')} confirmed & saved to Supabase!`, 'success');
   };
 
   const applyForLoan = async (offer: LoanOffer, amount: number, tenure: number, purpose: string): Promise<LoanApplication> => {
