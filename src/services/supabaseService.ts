@@ -129,8 +129,11 @@ export class SupabaseService {
     return this.config;
   }
 
-  private async request(endpoint: string, method: string = 'GET', body?: any) {
-    if (!this.config.isConnected || !this.config.supabaseUrl) return null;
+  public async request(endpoint: string, method: string = 'GET', body?: any) {
+    if (!this.config.isConnected || !this.config.supabaseUrl) {
+      console.warn('Supabase service is not connected or URL is missing.');
+      return null;
+    }
     try {
       const res = await fetch(`${this.config.supabaseUrl}/rest/v1/${endpoint}`, {
         method,
@@ -142,12 +145,17 @@ export class SupabaseService {
         },
         body: body ? JSON.stringify(body) : undefined
       });
-      if (res.ok) {
-        const text = await res.text();
-        return text ? JSON.parse(text) : null;
+      
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error(`Supabase Request Error [${res.status} ${res.statusText}] for ${method} ${endpoint}:`, errBody);
+        return null;
       }
+
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
     } catch (e) {
-      console.warn('Supabase request error:', e);
+      console.error('Supabase fetch network error:', e);
     }
     return null;
   }
@@ -274,7 +282,6 @@ export class SupabaseService {
           email: 'rahul.sharma@example.com',
           fullName: 'Rahul Sharma',
           phoneNumber: '+91 9876543210',
-          cibilScore: 780,
           monthlyIncome: 65000,
           employmentType: 'Salaried',
           bankName: 'HDFC Bank Ltd',
@@ -320,7 +327,6 @@ export class SupabaseService {
           email: dbUser.email_id || 'user@dhansetu.in',
           fullName: dbUser.full_name || 'DhanSetu User',
           phoneNumber: dbUser.mobile_no || cleanInput,
-          cibilScore: 780,
           monthlyIncome: 60000,
           employmentType: 'Salaried',
           bankName: 'State Bank of India',
@@ -378,7 +384,6 @@ export class SupabaseService {
         email: dbUser.email_id,
         fullName: dbUser.full_name,
         phoneNumber: dbUser.mobile_no,
-        cibilScore: 750,
         monthlyIncome: 50000,
         employmentType: 'Salaried',
         bankName: 'State Bank of India',
@@ -420,10 +425,10 @@ export class SupabaseService {
       Boolean(updatedKYC.panUrl);
 
     if (isCompleted && updatedKYC.overallStatus === 'not_started') {
-      updatedKYC.overallStatus = 'verified';
-      updatedKYC.verifiedAt = new Date().toISOString();
-      updatedKYC.aadharStatus = 'verified';
-      updatedKYC.panStatus = 'verified';
+      updatedKYC.overallStatus = 'submitted';
+      updatedKYC.verifiedAt = undefined;
+      updatedKYC.aadharStatus = 'submitted';
+      updatedKYC.panStatus = 'submitted';
     }
 
     const updatedUser: UserProfile = {
@@ -450,14 +455,38 @@ export class SupabaseService {
     return updatedUser;
   }
 
+  public async fetchPendingKYC(): Promise<any[]> {
+    const res = await this.request('kyc_documents?overall_status=eq.submitted&select=*');
+    return res || [];
+  }
+
   public async uploadKYCDocument(
-    folder: 'Selfie' | 'Aadhar Card' | 'Pan Card',
-    fileName: string,
+    customerId: string,
+    documentType: 'selfie' | 'aadhaar_front' | 'aadhaar_back' | 'pan',
     fileOrDataUrl: File | Blob | string
   ): Promise<string> {
     const bucket = 'Documents';
-    const cleanFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const filePath = `${folder}/${cleanFileName}`;
+    
+    const folderMap = {
+      'selfie': 'Selfie',
+      'aadhaar_front': 'Aadhar Card',
+      'aadhaar_back': 'Aadhar Card',
+      'pan': 'Pan Card'
+    };
+
+    const suffixMap = {
+      'selfie': 'selfie',
+      'aadhaar_front': 'aadharcardfront',
+      'aadhaar_back': 'aadharcardback',
+      'pan': 'pancard'
+    };
+
+    const folderName = folderMap[documentType];
+    const suffix = suffixMap[documentType];
+    const fileName = `${customerId}_${suffix}.jpg`;
+    
+    // Final Path: {customerId}/{folderName}/{fileName}
+    const filePath = `${customerId}/${folderName}/${fileName}`;
     
     let blob: Blob;
     let contentType = 'image/jpeg';
@@ -509,10 +538,12 @@ export class SupabaseService {
 
       if (!response.ok) {
         const errText = await response.text();
-        console.warn(`Supabase Storage upload to ${bucket}/${filePath} status:`, response.status, errText);
+        console.error(`Supabase Storage upload failed to ${bucket}/${filePath}. Status: ${response.status}, Response: ${errText}`);
+        throw new Error(`Upload failed: ${response.statusText || 'Unknown error'}`);
       }
     } catch (err) {
-      console.warn(`Storage network call to ${bucket}/${filePath}:`, err);
+      console.error(`Storage network call to ${bucket}/${filePath} failed:`, err);
+      throw err;
     }
 
     return publicUrl;
@@ -661,7 +692,7 @@ export class SupabaseService {
         user_id: user.id,
         customer_name: app.customerName || user.fullName,
         customer_mobile: app.customerMobile || user.phoneNumber,
-        customer_cibil: app.customerCibil || user.cibilScore,
+        customer_cibil: app.customerCibil || 750,
         loan_title: app.loanTitle,
         requested_amount: app.requestedAmount,
         tenure_months: app.tenureMonths,
@@ -682,7 +713,7 @@ export class SupabaseService {
       customerId: app.customerId || user?.customerId,
       customerName: app.customerName || user?.fullName,
       customerMobile: app.customerMobile || user?.phoneNumber,
-      customerCibil: app.customerCibil || user?.cibilScore,
+      customerCibil: app.customerCibil || 750,
       customerEmployment: app.customerEmployment || user?.employmentType,
       customerBank: app.customerBank || `${user?.bankName} (${user?.accountNumber})`
     };

@@ -29,6 +29,9 @@ export const RetailerScreen: React.FC = () => {
     activeLoans, 
     approveLoanByRetailer, 
     rejectLoanByRetailer, 
+    kycRequests,
+    fetchKycRequests,
+    approveKYC,
     toggleUserRole,
     setUserRole,
     setActiveTab,
@@ -36,12 +39,18 @@ export const RetailerScreen: React.FC = () => {
     user
   } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'pending' | 'approved' | 'guidelines'>('pending');
+  const [activeSubTab, setActiveSubTab] = useState<'kyc' | 'pending' | 'approved' | 'guidelines'>('kyc');
+  const [selectedKycForAllotment, setSelectedKycForAllotment] = useState<any | null>(null);
+  const [allotmentAmount, setAllotmentAmount] = useState<number>(50000);
   const [selectedAppForApproval, setSelectedAppForApproval] = useState<LoanApplication | null>(null);
   const [selectedAppForRejection, setSelectedAppForRejection] = useState<LoanApplication | null>(null);
   const [disbursalChannel, setDisbursalChannel] = useState<'wallet' | 'bank'>('wallet');
   const [rejectionReason, setRejectionReason] = useState<string>('CIBIL Score / Repayment capability insufficient');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    fetchKycRequests();
+  }, []);
 
   // Filter applications
   const pendingRequests = applications.filter(
@@ -214,6 +223,22 @@ export const RetailerScreen: React.FC = () => {
       {/* SUB-TABS */}
       <div className="flex bg-slate-200/80 p-1 rounded-2xl text-xs font-semibold">
         <button
+          onClick={() => setActiveSubTab('kyc')}
+          className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            activeSubTab === 'kyc'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <span>Pending KYC</span>
+          {kycRequests.length > 0 && (
+            <span className="px-1.5 py-0.2 bg-emerald-500 text-white font-mono text-[9px] font-bold rounded-full">
+              {kycRequests.length}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveSubTab('pending')}
           className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
             activeSubTab === 'pending'
@@ -221,12 +246,7 @@ export const RetailerScreen: React.FC = () => {
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span>Pending Customer Requests</span>
-          {pendingRequests.length > 0 && (
-            <span className="px-1.5 py-0.2 bg-amber-500 text-white font-mono text-[9px] font-bold rounded-full">
-              {pendingRequests.length}
-            </span>
-          )}
+          <span>Loan Queue</span>
         </button>
 
         <button
@@ -253,7 +273,57 @@ export const RetailerScreen: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB CONTENT: 1. PENDING REQUESTS */}
+      {/* TAB CONTENT: 0. PENDING KYC */}
+      {activeSubTab === 'kyc' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="font-bold text-slate-700">KYC Verification Queue</span>
+            <span className="text-[10px] text-slate-500">
+              {kycRequests.length} user(s) awaiting identity verification
+            </span>
+          </div>
+
+          {kycRequests.length === 0 ? (
+            <div className="p-8 bg-white border border-slate-200 rounded-3xl text-center">
+              <p className="text-xs text-slate-500">No pending KYC requests.</p>
+            </div>
+          ) : (
+            kycRequests.map((req) => (
+              <div key={req.id} className="p-4 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">{req.full_name || 'DhanSetu User'}</h3>
+                    <span className="text-[10px] text-slate-500 font-mono">{req.customer_id}</span>
+                  </div>
+                  <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded-full">
+                    Awaiting Review
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2">
+                  {['selfie_url', 'aadhar_front_url', 'aadhar_back_url', 'pan_url'].map(key => (
+                    <div key={key} className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                      {req[key] ? (
+                        <img src={req[key]} alt={key} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-400">No Image</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setSelectedKycForAllotment(req)}
+                  className="w-full py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Verify & Allot Loan</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      )}
       {activeSubTab === 'pending' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs px-1">
@@ -684,6 +754,41 @@ export const RetailerScreen: React.FC = () => {
         </div>
       )}
 
+      {/* MODAL: KYC ALLOTMENT */}
+      {selectedKycForAllotment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 shadow-2xl text-slate-900 space-y-4">
+            <h3 className="text-sm font-bold">Allot Loan Amount</h3>
+            <p className="text-xs text-slate-500">Verify documents for {selectedKycForAllotment.full_name} and specify loan limit.</p>
+            
+            <input 
+              type="number" 
+              value={allotmentAmount} 
+              onChange={e => setAllotmentAmount(Number(e.target.value))} 
+              className="w-full p-3 border rounded-xl font-mono font-bold"
+              placeholder="Enter Amount (e.g. 100000)"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  await approveKYC(selectedKycForAllotment.customer_id, allotmentAmount);
+                  setSelectedKycForAllotment(null);
+                }}
+                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs"
+              >
+                Confirm & Allot
+              </button>
+              <button
+                onClick={() => setSelectedKycForAllotment(null)}
+                className="px-4 py-3 bg-slate-100 rounded-xl font-bold text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

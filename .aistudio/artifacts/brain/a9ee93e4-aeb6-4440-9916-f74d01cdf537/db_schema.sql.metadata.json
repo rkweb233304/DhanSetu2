@@ -1,5 +1,5 @@
 {
-  "summary":  "PostgreSQL SQL schema definition for user management, loans, and agreements.",
-  "updatedAt":  "2026-10-24T22:58:41.577791135Z",
+  "summary":  "Comprehensive SQL schema for Supabase, including user auth, KYC documents, loan tracking, and wallets.",
+  "updatedAt":  "2026-10-24T23:19:01.846799403Z",
   "userFacing":  true
 }

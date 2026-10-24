@@ -12,7 +12,8 @@ import {
   Loader2,
   Lock,
   RefreshCw,
-  Check
+  Check,
+  Clock
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabaseService } from '../../services/supabaseService';
@@ -62,6 +63,7 @@ export const KYCScreen: React.FC = () => {
   const panInputRef = useRef<HTMLInputElement | null>(null);
 
   const isVerified = user?.kyc?.overallStatus === 'verified';
+  const isSubmitted = user?.kyc?.overallStatus === 'submitted';
 
   useEffect(() => {
     return () => {
@@ -113,46 +115,54 @@ export const KYCScreen: React.FC = () => {
     const target = activeCaptureTarget;
     if (!target) return;
 
-    const folderMap = {
-      'selfie': 'Selfie' as const,
-      'aadhar_front': 'Aadhar Card' as const,
-      'aadhar_back': 'Aadhar Card' as const,
-      'pan': 'Pan Card' as const
+    const typeMap: Record<string, 'selfie' | 'aadhaar_front' | 'aadhaar_back' | 'pan'> = {
+      'selfie': 'selfie',
+      'aadhar_front': 'aadhaar_front',
+      'aadhar_back': 'aadhaar_back',
+      'pan': 'pan'
     };
 
-    const folder = folderMap[target];
-    const fileName = `${target}_${Date.now()}.jpg`;
-    const uploadedUrl = await supabaseService.uploadKYCDocument(folder, fileName, dataUrl);
+    const docType = typeMap[target];
+    try {
+      const uploadedUrl = await supabaseService.uploadKYCDocument(user?.customerId || 'DS_GUEST', docType, dataUrl);
 
-    if (target === 'selfie') setSelfieUrl(uploadedUrl);
-    if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
-    if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
-    if (target === 'pan') setPanUrl(uploadedUrl);
+      if (target === 'selfie') setSelfieUrl(uploadedUrl);
+      if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
+      if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
+      if (target === 'pan') setPanUrl(uploadedUrl);
 
-    stopCamera();
-    showToast(`Document captured & stored in Documents/${folder} successfully!`, 'success');
+      stopCamera();
+      showToast(`Document captured successfully!`, 'success');
+    } catch (error) {
+      showToast('Capture upload failed', 'error');
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'selfie' | 'aadhar_front' | 'aadhar_back' | 'pan') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const folderMap = {
-      'selfie': 'Selfie' as const,
-      'aadhar_front': 'Aadhar Card' as const,
-      'aadhar_back': 'Aadhar Card' as const,
-      'pan': 'Pan Card' as const
+    const typeMap: Record<string, 'selfie' | 'aadhaar_front' | 'aadhaar_back' | 'pan'> = {
+      'selfie': 'selfie',
+      'aadhar_front': 'aadhaar_front',
+      'aadhar_back': 'aadhaar_back',
+      'pan': 'pan'
     };
 
-    const folder = folderMap[target];
-    const uploadedUrl = await supabaseService.uploadKYCDocument(folder, file.name, file);
+    const docType = typeMap[target];
+    try {
+      const uploadedUrl = await supabaseService.uploadKYCDocument(user?.customerId || 'DS_GUEST', docType, file);
 
-    if (target === 'selfie') setSelfieUrl(uploadedUrl);
-    if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
-    if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
-    if (target === 'pan') setPanUrl(uploadedUrl);
+      if (target === 'selfie') setSelfieUrl(uploadedUrl);
+      if (target === 'aadhar_front') setAadharFrontUrl(uploadedUrl);
+      if (target === 'aadhar_back') setAadharBackUrl(uploadedUrl);
+      if (target === 'pan') setPanUrl(uploadedUrl);
 
-    showToast(`Document uploaded to Documents/${folder} successfully!`, 'success');
+      showToast(`Document uploaded successfully!`, 'success');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      showToast(`Failed to upload document. Please try again.`, 'error');
+    }
   };
 
   const completedDocsCount = [selfieUrl, aadharFrontUrl, aadharBackUrl, panUrl].filter(Boolean).length;
@@ -165,42 +175,28 @@ export const KYCScreen: React.FC = () => {
     }
 
     setIsVerifying(true);
-    setVerificationStep('Authenticating with UIDAI Aadhaar Vault...');
-
-    setTimeout(() => {
-      setVerificationStep('Verifying NSDL PAN Card details...');
-    }, 900);
-
-    setTimeout(() => {
-      setVerificationStep('Running Liveness & Face Match check (98.4%)...');
-    }, 1800);
+    setVerificationStep('Uploading documents to Supabase...');
 
     setTimeout(async () => {
       setIsVerifying(false);
-
       await updateUserKYC({
         ...formData,
         selfieUrl,
-        selfieCapturedAt: new Date().toISOString(),
         aadharFrontUrl,
         aadharBackUrl,
         aadharNumber: aadharNumber || '5489 1234 8921',
-        aadharStatus: 'verified',
         panUrl,
         panNumber: (panNumber || 'ABCPS8921K').toUpperCase(),
-        panStatus: 'verified',
-        overallStatus: 'verified',
-        verifiedAt: new Date().toISOString()
+        overallStatus: 'submitted'
       });
-
-      showToast('🎉 KYC Verification Completed Successfully!', 'success');
-    }, 2800);
+      showToast('KYC Documents submitted for retailer review!', 'success');
+    }, 1500);
   };
 
   const isStep1Valid = formData.fullName && formData.fatherName && formData.motherName && formData.address && formData.state;
   const isStep2Valid = formData.nomineeName && formData.nomineeMobile && formData.nomineeRelation && formData.guarantorName && formData.guarantorMobile && formData.guarantorRelation;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && !isStep1Valid) {
       showToast('Please fill all fields in step 1', 'error');
       return;
@@ -209,7 +205,17 @@ export const KYCScreen: React.FC = () => {
       showToast('Please fill all fields in step 2', 'error');
       return;
     }
-    // Save current step data (implicitly saved in formData state)
+    
+    // Save current state to Supabase at each step for persistence
+    try {
+      await updateUserKYC({
+        ...formData,
+        overallStatus: user?.kyc?.overallStatus || 'not_started'
+      });
+    } catch (e) {
+      console.warn('Step save failed:', e);
+    }
+
     setStep(prev => (prev < 3 ? (prev + 1) as 1 | 2 | 3 : prev));
   };
 
@@ -222,10 +228,69 @@ export const KYCScreen: React.FC = () => {
         <button onClick={() => setActiveTab('home')} className="p-1.5 -ml-1 text-slate-500 hover:text-slate-900 flex items-center gap-1 text-xs">
           <ArrowLeft className="w-4 h-4" /> Home
         </button>
-        <span className="text-xs font-bold bg-white px-3 py-1 rounded-full border">Step {step} of 3</span>
+        {!isVerified && !isSubmitted && <span className="text-xs font-bold bg-white px-3 py-1 rounded-full border">Step {step} of 3</span>}
       </div>
 
-      {step === 1 && (
+      {isSubmitted && (
+        <div className="p-8 bg-amber-50 border border-amber-200 rounded-3xl text-center space-y-4 shadow-sm">
+          <Clock className="w-16 h-16 text-amber-500 mx-auto" />
+          <h2 className="text-xl font-bold text-amber-900">KYC Under Review</h2>
+          <p className="text-sm text-amber-700">Your documents are being reviewed by a retailer. You will be notified once a loan is allotted to you.</p>
+          <button onClick={() => setActiveTab('home')} className="w-full py-3 bg-white border border-amber-300 text-amber-900 rounded-2xl font-bold">Back to Dashboard</button>
+        </div>
+      )}
+
+      {isVerified && (
+        <div className="p-8 bg-emerald-50 border border-emerald-200 rounded-3xl text-center space-y-4 shadow-sm">
+          <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto" />
+          <h2 className="text-xl font-bold text-emerald-900">KYC Verified</h2>
+          <p className="text-sm text-emerald-700">Congratulations! Your identity is verified and you have active loan offers.</p>
+          <button onClick={() => setActiveTab('home')} className="w-full py-3 bg-emerald-600 text-white rounded-2xl font-bold">View Offers</button>
+        </div>
+      )}
+
+      {!isVerified && !isSubmitted && (
+        <>
+          {/* Camera Live Modal Overlay */}
+          {isCameraActive && (
+            <div className="fixed inset-0 z-50 bg-black/90 flex flex-col p-4 animate-in fade-in">
+              <div className="flex items-center justify-between text-white mb-2">
+                <span className="text-xs font-semibold capitalize">Capture {activeCaptureTarget?.replace(/_/g, ' ')}</span>
+                <button onClick={stopCamera} className="p-1 rounded-full bg-slate-800 text-slate-300 hover:text-white">✕</button>
+              </div>
+              <div className="flex-1 bg-slate-950 rounded-2xl overflow-hidden relative flex items-center justify-center border border-slate-800">
+                {cameraError ? (
+                  <div className="p-4 text-center">
+                    <AlertCircle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                    <p className="text-xs text-slate-300">{cameraError}</p>
+                    <button onClick={stopCamera} className="mt-3 px-3 py-1.5 bg-slate-800 text-xs text-white rounded-lg">Close & Upload Instead</button>
+                  </div>
+                ) : (
+                  <>
+                    <video ref={videoRef} playsInline autoPlay muted className="w-full h-full object-cover" />
+                    <div className="absolute inset-4 border-2 border-dashed border-emerald-400/60 rounded-2xl pointer-events-none flex items-center justify-center">
+                      {activeCaptureTarget === 'selfie' && <div className="w-48 h-60 border-2 border-emerald-400/80 rounded-full" />}
+                    </div>
+                  </>
+                )}
+              </div>
+              {!cameraError && (
+                <div className="py-4 flex justify-center items-center gap-4">
+                  <button onClick={captureSnapshot} className="w-16 h-16 rounded-full bg-white border-4 border-emerald-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                    <div className="w-12 h-12 rounded-full bg-emerald-600" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hidden File Inputs */}
+          <input type="file" ref={selfieInputRef} accept="image/*" capture="user" className="hidden" onChange={(e) => handleFileUpload(e, 'selfie')} />
+          <input type="file" ref={aadharFrontInputRef} accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'aadhar_front')} />
+          <input type="file" ref={aadharBackInputRef} accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'aadhar_back')} />
+          <input type="file" ref={panInputRef} accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'pan')} />
+
+          {step === 1 && (
         <div className="space-y-4">
           <h2 className="text-lg font-bold">Personal Information</h2>
           <input type="text" placeholder="Full Name" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full p-3 border rounded-xl" />
@@ -334,6 +399,8 @@ export const KYCScreen: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 };

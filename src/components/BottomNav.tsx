@@ -4,7 +4,8 @@ import {
   Coins, 
   CreditCard, 
   User,
-  Building2
+  Building2,
+  ShieldCheck
 } from 'lucide-react';
 import { useApp, TabType } from '../context/AppContext';
 
@@ -17,6 +18,8 @@ export const BottomNav: React.FC = () => {
 
   const baseNavItems: { tab: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { tab: 'home', label: 'Home', icon: Home },
+    ...(isRetailer ? [{ tab: 'retailer' as TabType, label: 'Retailer', icon: Building2 }] : []),
+    ...(user?.role === 'admin' ? [{ tab: 'admin' as TabType, label: 'Admin', icon: ShieldCheck }] : []),
     { tab: 'loans', label: 'Loans', icon: Coins },
     { tab: 'payments', label: 'Payments', icon: CreditCard },
     { tab: 'profile', label: 'Profile', icon: User }

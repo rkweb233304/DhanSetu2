@@ -7,6 +7,7 @@ import { PaymentsScreen } from './components/payments/PaymentsScreen';
 import { ProfileScreen } from './components/profile/ProfileScreen';
 import { KYCScreen } from './components/kyc/KYCScreen';
 import { RetailerScreen } from './components/retailer/RetailerScreen';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AuthPage } from './components/auth/AuthPage';
 import { SupabaseModal } from './components/common/SupabaseModal';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
@@ -80,6 +81,7 @@ function DhanSetuApp() {
           )}
           {activeTab === 'retailer' && <RetailerScreen />}
           {activeTab === 'kyc' && <KYCScreen />}
+          {activeTab === 'admin' && <AdminDashboard />}
         </div>
 
         {/* Fixed Bottom Navigation Bar */}

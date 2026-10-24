@@ -1,0 +1,6 @@
+{
+  "summary":  "Supabase SQL code for enabling RLS and adding policies for both tables and storage to fix permission errors.",
+  "updatedAt":  "2026-10-24T23:34:24.446411449Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

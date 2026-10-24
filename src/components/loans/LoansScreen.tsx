@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LoanOffer } from '../../types';
+import { LoanHistory } from './LoanHistory';
 
 interface LoansScreenProps {
   onOpenTracker: () => void;
@@ -32,14 +33,7 @@ export const LoansScreen: React.FC<LoansScreenProps> = ({ onOpenTracker }) => {
   const closedList = activeLoans.filter(l => l.status === 'closed');
   const rejectedList = applications.filter(a => a.currentStage === 'rejected');
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active': return <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px]">Active</span>;
-      case 'closed': return <span className="font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-[10px]">Closed</span>;
-      case 'rejected': return <span className="font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-full text-[10px]">Rejected</span>;
-      default: return <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full text-[10px]">Pending</span>;
-    }
-  };
+
 
   const [calcAmount, setCalcAmount] = useState<number>(150000);
   const [calcTenure, setCalcTenure] = useState<number>(18);
@@ -95,48 +89,11 @@ export const LoansScreen: React.FC<LoansScreenProps> = ({ onOpenTracker }) => {
 
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar bg-slate-50 text-slate-900 p-4 pb-20 space-y-4">
-      {/* ACTIVE & CLOSED LOANS */}
-      <div className="space-y-3">
-        <h2 className="text-xs font-bold text-slate-900">Your Loan History</h2>
-        
-        {/* Loan Applications List */}
-        <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-2">
-          <h3 className="text-xs font-bold text-slate-900">All Loan Applications</h3>
-          {activeList.length === 0 && closedList.length === 0 && rejectedList.length === 0 ? (
-            <p className="text-[10px] text-slate-500">No loan history.</p>
-          ) : (
-            <>
-              {activeList.map(l => (
-                <div key={l.id} className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex justify-between items-center text-xs">
-                  <div>
-                    <p className="font-bold">{l.title}</p>
-                    <p className="text-[10px]">₹{l.outstandingBalance.toLocaleString('en-IN')} Due</p>
-                  </div>
-                  {getStatusBadge('active')}
-                </div>
-              ))}
-              {closedList.map(l => (
-                <div key={l.id} className="p-3 bg-slate-100 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
-                  <div>
-                    <p className="font-bold">{l.title}</p>
-                    <p className="text-[10px]">Paid: ₹{l.originalAmount.toLocaleString('en-IN')}</p>
-                  </div>
-                  {getStatusBadge('closed')}
-                </div>
-              ))}
-              {rejectedList.map(a => (
-                <div key={a.id} className="p-3 bg-red-50 rounded-xl border border-red-100 flex justify-between items-center text-xs">
-                  <div>
-                    <p className="font-bold">{a.loanTitle}</p>
-                    <p className="text-[10px]">Requested: ₹{a.requestedAmount.toLocaleString('en-IN')}</p>
-                  </div>
-                  {getStatusBadge('rejected')}
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      </div>
+      {/* LOAN HISTORY COMPONENT */}
+      <LoanHistory 
+        activeLoans={activeLoans}
+        applications={applications}
+      />
 
       {/* INTERACTIVE EMI CALCULATOR */}
       <div className="p-4 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-4">
