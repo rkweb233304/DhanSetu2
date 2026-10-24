@@ -250,9 +250,56 @@ export class SupabaseService {
     const isCustomerId = loginInput.trim().toUpperCase().startsWith('DS');
     const cleanInput = isCustomerId ? loginInput.trim().toUpperCase() : loginInput.trim();
 
-    // Check if user exists by customer_id or mobile_no
+    // 1. Try Supabase REST query
     const queryField = isCustomerId ? `customer_id=eq.${cleanInput}` : `mobile_no=eq.${cleanInput}`;
-    const existing = await this.request(`auth_users?${queryField}&select=*`);
+    let existing = await this.request(`auth_users?${queryField}&select=*`);
+
+    // 2. Check local fallback users cache if Supabase table is unreachable or empty
+    const localUsers: any[] = JSON.parse(localStorage.getItem('dhansetu_local_auth_users') || '[]');
+    if ((!existing || existing.length === 0) && localUsers.length > 0) {
+      const found = localUsers.find(u => 
+        (isCustomerId ? u.customer_id === cleanInput : u.mobile_no === cleanInput)
+      );
+      if (found) {
+        existing = [found];
+      }
+    }
+
+    // 3. Fallback demo user if credentials match standard demo
+    if ((!existing || existing.length === 0) && (cleanInput === '9876543210' || cleanInput === 'DS2026102401' || cleanInput === 'DEMO')) {
+      if (pin === '123456') {
+        const demoUser: UserProfile = {
+          id: 'usr_demo_01',
+          customerId: 'DS2026102401',
+          email: 'rahul.sharma@example.com',
+          fullName: 'Rahul Sharma',
+          phoneNumber: '+91 9876543210',
+          cibilScore: 780,
+          monthlyIncome: 65000,
+          employmentType: 'Salaried',
+          bankName: 'HDFC Bank Ltd',
+          accountNumber: '••••••••4892',
+          ifscCode: 'HDFC0001234',
+          isFirstTimeLogin: false,
+          kycCompleted: true,
+          kyc: {
+            selfieUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+            aadharFrontUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+            aadharBackUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+            aadharNumber: '•••• •••• 8912',
+            aadharStatus: 'verified',
+            panUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+            panNumber: 'ABCDE1234F',
+            panStatus: 'verified',
+            overallStatus: 'verified',
+            verifiedAt: '2026-10-24T10:00:00.000Z'
+          },
+          createdAt: new Date().toISOString()
+        };
+        this.saveUser(demoUser);
+        return demoUser;
+      }
+    }
 
     if (existing && existing.length > 0) {
       const dbUser = existing[0];
@@ -266,9 +313,9 @@ export class SupabaseService {
         const profile: UserProfile = {
           id: dbUser.id,
           customerId: customerId,
-          email: dbUser.email_id,
-          fullName: dbUser.full_name,
-          phoneNumber: dbUser.mobile_no,
+          email: dbUser.email_id || 'user@dhansetu.in',
+          fullName: dbUser.full_name || 'DhanSetu User',
+          phoneNumber: dbUser.mobile_no || cleanInput,
           cibilScore: 780,
           monthlyIncome: 60000,
           employmentType: 'Salaried',
@@ -278,14 +325,14 @@ export class SupabaseService {
           isFirstTimeLogin: false,
           kycCompleted: false,
           kyc: { aadharStatus: 'pending', panStatus: 'pending', overallStatus: 'not_started' },
-          createdAt: dbUser.created_at
+          createdAt: dbUser.created_at || new Date().toISOString()
         };
 
         await this.syncUserDataFromSupabase(customerId, profile);
         this.saveUser(profile);
         return profile;
       } else {
-        throw new Error('Invalid 6-digit PIN');
+        throw new Error('Invalid 6-digit PIN. Please try again.');
       }
     }
 
@@ -307,8 +354,13 @@ export class SupabaseService {
         full_name: fullName,
         mobile_no: cleanInput,
         email_id: emailId,
+        pin: pin,
         created_at: new Date().toISOString()
       };
+
+      // Save to local auth cache as fallback
+      localUsers.push(dbUser);
+      localStorage.setItem('dhansetu_local_auth_users', JSON.stringify(localUsers));
 
       const profile: UserProfile = {
         id: dbUser.id,
@@ -339,7 +391,7 @@ export class SupabaseService {
       return profile;
     }
 
-    throw new Error(isCustomerId ? 'Customer ID not found. Please register first.' : 'Mobile number not registered. Please register first.');
+    throw new Error(isCustomerId ? 'Customer ID not found. Please register first or use Demo Login.' : 'Mobile number not registered. Please register first or use Demo Login.');
   }
 
   public async updateKYC(kycData: Partial<UserProfile['kyc']>): Promise<UserProfile> {

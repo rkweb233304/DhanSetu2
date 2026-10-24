@@ -20,6 +20,7 @@ export type DeviceFrameType = 'ios' | 'android' | 'fullscreen';
 interface AppContextType {
   user: UserProfile | null;
   setUser: (user: UserProfile | null) => void;
+  logout: () => void;
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   deviceFrame: DeviceFrameType;
@@ -101,7 +102,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserState(newUser);
     if (newUser) {
       supabaseService.saveUser(newUser);
+    } else {
+      localStorage.removeItem('dhansetu_user');
     }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setActiveTab('home');
+    setAuthMode('login');
+    showToast('You have been logged out securely.', 'info');
   };
 
   const updateUserKYC = async (kycData: Partial<UserProfile['kyc']>) => {
@@ -350,6 +360,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         user,
         setUser,
+        logout,
         activeTab,
         setActiveTab,
         deviceFrame,
