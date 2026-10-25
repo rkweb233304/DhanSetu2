@@ -45,9 +45,9 @@ export const AuthPage: React.FC = () => {
       return;
     }
 
-    const isCustomer = cleanId.toUpperCase().startsWith('DS');
+    const isCustomer = /^\d{10}$/.test(cleanId) && cleanId.startsWith('20');
     if (!isCustomer && cleanId.length < 10) {
-      showToast('Please enter a valid 10-digit mobile number or Customer ID (e.g. DS2026102401)', 'error');
+      showToast('Please enter a valid 10-digit mobile number or Customer ID (e.g. 2026102401)', 'error');
       return;
     }
 
@@ -168,7 +168,7 @@ export const AuthPage: React.FC = () => {
                 </button>
               </div>
               <p className="text-[10px] text-slate-600 mt-1.5 leading-relaxed">
-                Format: <span className="font-mono">DS[Year][Month][Date][SN]</span>. All loans, KYC documents, and payments are permanently linked to this ID.
+                All loans, KYC documents, and payments are permanently linked to this ID.
               </p>
             </div>
 
@@ -224,9 +224,9 @@ export const AuthPage: React.FC = () => {
                       maxLength={16}
                       value={loginIdentifier}
                       onChange={(e) => setLoginIdentifier(e.target.value)}
-                      placeholder="9876543210 or DS2026102401"
+                      placeholder="9876543210 or 2026102401"
                       required
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 font-mono uppercase focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
                     />
                   </div>
                 </div>

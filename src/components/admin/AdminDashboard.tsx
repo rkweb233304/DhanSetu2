@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
                 type="text" 
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
-                placeholder="e.g. DS2026102401"
+                placeholder="e.g. 2026102401"
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:border-indigo-500 transition-all"
               />
             </div>

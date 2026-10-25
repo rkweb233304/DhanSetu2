@@ -91,7 +91,7 @@ export function generateCustomerId(): string {
   localStorage.setItem(counterKey, String(nextCount));
   
   const sn = String(nextCount).padStart(2, '0');
-  return `DS${dateKey}${sn}`;
+  return `${dateKey}${sn}`;
 }
 
 export class SupabaseService {
@@ -129,26 +129,42 @@ export class SupabaseService {
     return this.config;
   }
 
-  public async request(endpoint: string, method: string = 'GET', body?: any) {
+  public async request(endpoint: string, method: string = 'GET', body?: any, isUpsert: boolean = false, conflictColumns?: string) {
     if (!this.config.isConnected || !this.config.supabaseUrl) {
       console.warn('Supabase service is not connected or URL is missing.');
       return null;
     }
     try {
-      const res = await fetch(`${this.config.supabaseUrl}/rest/v1/${endpoint}`, {
+      const headers: Record<string, string> = {
+        'apikey': this.config.supabaseAnonKey,
+        'Authorization': `Bearer ${this.config.supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      };
+
+      if (method === 'POST') {
+        headers['Prefer'] = isUpsert 
+          ? 'return=representation,resolution=merge-duplicates' 
+          : 'return=representation';
+      } else {
+        headers['Prefer'] = 'return=minimal';
+      }
+
+      let url = `${this.config.supabaseUrl}/rest/v1/${endpoint}`;
+      if (isUpsert && conflictColumns) {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}on_conflict=${conflictColumns}`;
+      }
+
+      const res = await fetch(url, {
         method,
-        headers: {
-          'apikey': this.config.supabaseAnonKey,
-          'Authorization': `Bearer ${this.config.supabaseAnonKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
-        },
+        headers,
         body: body ? JSON.stringify(body) : undefined
       });
       
       if (!res.ok) {
         const errBody = await res.text();
-        console.error(`Supabase Request Error [${res.status} ${res.statusText}] for ${method} ${endpoint}:`, errBody);
+        console.error(`Supabase ERROR [${res.status}] for ${method} ${endpoint}:`, errBody);
+        console.error(`Request Body:`, JSON.stringify(body));
         return null;
       }
 
@@ -255,8 +271,8 @@ export class SupabaseService {
   }
 
   public async registerOrLogin(loginInput: string, pin: string, fullName?: string, emailId?: string): Promise<UserProfile> {
-    const isCustomerId = loginInput.trim().toUpperCase().startsWith('DS');
-    const cleanInput = isCustomerId ? loginInput.trim().toUpperCase() : loginInput.trim();
+    const isCustomerId = /^\d{10}$/.test(loginInput.trim()) && loginInput.trim().startsWith('20'); // IDs start with year '20...'
+    const cleanInput = loginInput.trim();
 
     // 1. Try Supabase REST query
     const queryField = isCustomerId ? `customer_id=eq.${cleanInput}` : `mobile_no=eq.${cleanInput}`;
@@ -350,7 +366,13 @@ export class SupabaseService {
     }
 
     if (fullName && emailId) {
-      // Generate Unique Customer ID: DS((Years))((Month))((Date))((0+SN))
+      // 1. Check if user already exists BEFORE registering
+      const existingCheck = await this.request(`auth_users?mobile_no=eq.${cleanInput}&select=id`);
+      if (existingCheck && existingCheck.length > 0) {
+        throw new Error('This mobile number is already registered. Please login using your PIN.');
+      }
+
+      // Generate Unique Customer ID: ((Years))((Month))((Date))((0+SN))
       const customerId = generateCustomerId();
 
       const created = await this.request('auth_users', 'POST', {
@@ -362,16 +384,11 @@ export class SupabaseService {
         role: 'customer'
       });
 
-      const dbUser = created && created[0] ? created[0] : {
-        id: `usr_${Date.now()}`,
-        customer_id: customerId,
-        full_name: fullName,
-        mobile_no: cleanInput,
-        email_id: emailId,
-        pin: pin,
-        role: 'customer',
-        created_at: new Date().toISOString()
-      };
+      if (!created || !created[0]) {
+        throw new Error('Failed to register user in Supabase. Please check your SQL schema and RLS policies.');
+      }
+
+      const dbUser = created[0];
 
       // Save to local auth cache as fallback
       localUsers.push(dbUser);
@@ -401,7 +418,7 @@ export class SupabaseService {
         customer_id: customerId,
         user_id: profile.id,
         balance: 0
-      });
+      }, true); // isUpsert
 
       this.saveUser(profile);
       return profile;
@@ -438,7 +455,7 @@ export class SupabaseService {
       kyc: updatedKYC
     };
 
-    await this.request('kyc_documents', 'POST', {
+    const res = await this.request('kyc_documents', 'POST', {
       customer_id: user.customerId,
       user_id: user.id,
       selfie_url: updatedKYC.selfieUrl,
@@ -448,8 +465,24 @@ export class SupabaseService {
       pan_url: updatedKYC.panUrl,
       pan_number: updatedKYC.panNumber,
       overall_status: updatedKYC.overallStatus,
-      verified_at: updatedKYC.verifiedAt
-    });
+      verified_at: updatedKYC.verifiedAt,
+      // Add text-based fields for step persistence
+      full_name: updatedKYC.fullName,
+      father_name: updatedKYC.fatherName,
+      mother_name: updatedKYC.motherName,
+      address: updatedKYC.address,
+      state: updatedKYC.state,
+      nominee_name: updatedKYC.nomineeName,
+      nominee_mobile: updatedKYC.nomineeMobile,
+      nominee_relation: updatedKYC.nomineeRelation,
+      guarantor_name: updatedKYC.guarantorName,
+      guarantor_mobile: updatedKYC.guarantorMobile,
+      guarantor_relation: updatedKYC.guarantorRelation
+    }, true, 'customer_id'); // true = isUpsert, match on customer_id
+
+    if (!res) {
+      throw new Error('Failed to update KYC documents in Supabase. Check schema and RLS policies.');
+    }
 
     this.saveUser(updatedUser);
     return updatedUser;
@@ -566,7 +599,7 @@ export class SupabaseService {
   public async saveActiveLoanToTable(loan: ActiveLoan): Promise<void> {
     const user = this.getUser();
     if (user) {
-      await this.request('active_loans', 'POST', {
+      const res = await this.request('active_loans', 'POST', {
         id: loan.id,
         customer_id: user.customerId,
         user_id: user.id,
@@ -581,7 +614,11 @@ export class SupabaseService {
         next_emi_date: loan.nextEmiDate,
         start_date: loan.startDate,
         status: loan.status
-      });
+      }, true);
+      
+      if (!res) {
+        throw new Error('Failed to save active loan to Supabase.');
+      }
     }
 
     const loans = this.getActiveLoans();
@@ -602,11 +639,14 @@ export class SupabaseService {
     const user = this.getUser();
     localStorage.setItem(STORAGE_KEYS.WALLET_BALANCE, balance.toString());
     if (user) {
-      await this.request('wallets', 'POST', {
+      const res = await this.request('wallets', 'POST', {
         customer_id: user.customerId,
         user_id: user.id,
         balance: balance
-      });
+      }, true, 'customer_id'); // match on customer_id
+      if (!res) {
+        throw new Error('Failed to update wallet balance in Supabase.');
+      }
     }
   }
 
@@ -686,7 +726,7 @@ export class SupabaseService {
   public async saveApplicationToTable(app: LoanApplication): Promise<void> {
     const user = this.getUser();
     if (user) {
-      await this.request('loan_applications', 'POST', {
+      const res = await this.request('loan_applications', 'POST', {
         id: app.id,
         customer_id: app.customerId || user.customerId,
         user_id: user.id,
@@ -704,7 +744,11 @@ export class SupabaseService {
         retailer_id: app.retailerId,
         retailer_approved_at: app.retailerApprovedAt,
         rejection_reason: app.rejectionReason
-      });
+      }, true); // isUpsert
+      
+      if (!res) {
+        throw new Error('Failed to save loan application to Supabase.');
+      }
     }
 
     const apps = this.getApplications();
@@ -745,7 +789,7 @@ export class SupabaseService {
     const userId = user?.id || payment.userId || 'usr_guest';
     const customerId = user?.customerId || payment.customerId || 'DS2026102401';
 
-    await this.request('payments', 'POST', {
+    const res = await this.request('payments', 'POST', {
       id: payment.id,
       customer_id: customerId,
       user_id: userId,
@@ -759,7 +803,11 @@ export class SupabaseService {
       reference_id: payment.referenceId,
       status: payment.status,
       created_at: new Date().toISOString()
-    });
+    }, true); // isUpsert
+
+    if (!res) {
+      throw new Error('Failed to save payment record to Supabase.');
+    }
 
     const list = this.getPaymentHistory();
     list.unshift({ ...payment, userId, customerId });

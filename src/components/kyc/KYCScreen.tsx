@@ -13,7 +13,9 @@ import {
   Lock,
   RefreshCw,
   Check,
-  Clock
+  Clock,
+  User,
+  Users
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabaseService } from '../../services/supabaseService';
@@ -224,12 +226,49 @@ export const KYCScreen: React.FC = () => {
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar bg-slate-50 text-slate-900 flex flex-col p-4 pb-28">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <button onClick={() => setActiveTab('home')} className="p-1.5 -ml-1 text-slate-500 hover:text-slate-900 flex items-center gap-1 text-xs">
           <ArrowLeft className="w-4 h-4" /> Home
         </button>
-        {!isVerified && !isSubmitted && <span className="text-xs font-bold bg-white px-3 py-1 rounded-full border">Step {step} of 3</span>}
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">KYC Verification</span>
+        </div>
       </div>
+
+      {!isVerified && !isSubmitted && (
+        <div className="mb-8 relative">
+          <div className="flex items-center justify-between w-full relative z-10">
+            {[
+              { id: 1, label: 'Info', icon: User },
+              { id: 2, label: 'Nominee', icon: Users },
+              { id: 3, label: 'Docs', icon: ShieldCheck }
+            ].map((s) => (
+              <div key={s.id} className="flex flex-col items-center gap-2">
+                <div 
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border-2 ${
+                    step >= s.id 
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                      : 'bg-white border-slate-200 text-slate-400'
+                  }`}
+                >
+                  <s.icon className={`w-5 h-5 ${step === s.id ? 'animate-pulse' : ''}`} />
+                </div>
+                <span className={`text-[10px] font-bold uppercase tracking-tight ${step >= s.id ? 'text-emerald-700' : 'text-slate-400'}`}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* Progress Line */}
+          <div className="absolute top-5 left-8 right-8 h-0.5 bg-slate-200 -z-0">
+            <div 
+              className="h-full bg-emerald-500 transition-all duration-500" 
+              style={{ width: `${((step - 1) / 2) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {isSubmitted && (
         <div className="p-8 bg-amber-50 border border-amber-200 rounded-3xl text-center space-y-4 shadow-sm">

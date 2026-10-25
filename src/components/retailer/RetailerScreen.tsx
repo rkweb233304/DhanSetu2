@@ -365,11 +365,11 @@ export const RetailerScreen: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] text-slate-400 font-medium">Customer ID:</span>
                       <span 
-                        onClick={() => handleCopy(app.customerId || 'DS2026102401', 'Customer ID')}
+                        onClick={() => handleCopy(app.customerId || '2026102401', 'Customer ID')}
                         className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold rounded cursor-pointer flex items-center gap-1"
                         title="Click to copy"
                       >
-                        <span>{app.customerId || 'DS2026102401'}</span>
+                        <span>{app.customerId || '2026102401'}</span>
                         <Copy className="w-2.5 h-2.5 opacity-60" />
                       </span>
                     </div>
@@ -588,7 +588,7 @@ export const RetailerScreen: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-slate-500">Customer ID:</span>
                 <span className="font-mono font-bold text-emerald-800">
-                  {selectedAppForApproval.customerId || 'DS2026102401'}
+                  {selectedAppForApproval.customerId || '2026102401'}
                 </span>
               </div>
               <div className="flex justify-between">
