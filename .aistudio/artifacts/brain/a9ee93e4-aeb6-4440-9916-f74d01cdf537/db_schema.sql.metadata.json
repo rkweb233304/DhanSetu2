@@ -1,5 +1,5 @@
 {
-  "summary":  "Comprehensive SQL schema for Supabase, including user auth, KYC documents, loan tracking, and wallets.",
-  "updatedAt":  "2026-10-24T23:19:01.846799403Z",
+  "summary":  "Updated db_schema.sql to ensure KYC document fields are correctly defined and added NOT NULL constraints where appropriate to enforce data completeness. Verified presence of all requested fields.",
+  "updatedAt":  "2026-10-25T09:12:55.467850884Z",
   "userFacing":  true
 }

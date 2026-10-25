@@ -1,0 +1,5 @@
+{
+  "summary":  "Combined schema and sample data script for initializing Supabase tables with admin and customer users, including all required KYC fields.",
+  "updatedAt":  "2026-10-25T09:19:32.214176349Z",
+  "userFacing":  true
+}

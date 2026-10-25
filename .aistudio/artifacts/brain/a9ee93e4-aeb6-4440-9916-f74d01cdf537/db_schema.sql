@@ -1,7 +1,6 @@
 -- DHANSETU DATABASE SCHEMA (COMPATIBLE WITH STRING IDs)
 -- Execute this in your Supabase SQL Editor
 
--- 0. FIX: Ensure all ID columns are TEXT to support "usr_..." format
 -- 1. Authentication Users Table
 CREATE TABLE IF NOT EXISTS auth_users (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -10,11 +9,12 @@ CREATE TABLE IF NOT EXISTS auth_users (
     mobile_no TEXT UNIQUE NOT NULL,
     email_id TEXT UNIQUE,
     pin TEXT NOT NULL,
-    role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'retailer', 'admin')),
+    role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- 2. KYC Documents Table
+-- Ensuring all fields requested are present and mandatory for KYC
 CREATE TABLE IF NOT EXISTS kyc_documents (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     customer_id TEXT UNIQUE REFERENCES auth_users(customer_id),
@@ -30,12 +30,12 @@ CREATE TABLE IF NOT EXISTS kyc_documents (
     guarantor_name TEXT,
     guarantor_mobile TEXT,
     guarantor_relation TEXT,
-    selfie_url TEXT,
-    aadhar_front_url TEXT,
-    aadhar_back_url TEXT,
-    aadhar_number TEXT,
-    pan_url TEXT,
-    pan_number TEXT,
+    selfie_url TEXT NOT NULL,
+    aadhar_front_url TEXT NOT NULL,
+    aadhar_back_url TEXT NOT NULL,
+    aadhar_number TEXT NOT NULL,
+    pan_url TEXT NOT NULL,
+    pan_number TEXT NOT NULL,
     overall_status TEXT DEFAULT 'submitted' CHECK (overall_status IN ('not_started', 'submitted', 'in_review', 'verified', 'rejected')),
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -77,8 +77,6 @@ CREATE TABLE IF NOT EXISTS loan_applications (
     current_stage TEXT,
     stage_progress INTEGER DEFAULT 0,
     retailer_status TEXT DEFAULT 'pending',
-    retailer_id TEXT,
-    retailer_approved_at TIMESTAMP WITH TIME ZONE,
     rejection_reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -141,4 +139,3 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('Documents', 'Documents',
 UPDATE storage.buckets SET public = true WHERE id = 'Documents';
 DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access" ON storage.objects FOR ALL TO public USING (bucket_id = 'Documents') WITH CHECK (bucket_id = 'Documents');
-
