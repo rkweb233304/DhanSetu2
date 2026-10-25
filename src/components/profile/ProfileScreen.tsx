@@ -19,9 +19,11 @@ import {
   Shield,
   Upload,
   CheckCircle2,
-  X
+  X,
+  Scale
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { TermsAndConditions } from './TermsAndConditions';
 
 interface ProfileScreenProps {
   onOpenSupabaseModal?: () => void;
@@ -37,7 +39,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
     showToast 
   } = useApp();
 
-  const [activeModal, setActiveModal] = useState<'agreement' | 'contact' | 'report' | 'logout' | null>(null);
+  const [activeModal, setActiveModal] = useState<'agreement' | 'contact' | 'report' | 'logout' | 'terms' | null>(null);
 
   // Agreement state
   const [agreementAccepted, setAgreementAccepted] = useState(true);
@@ -87,6 +89,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
     const tktId = `DS-TKT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     setGeneratedTicketId(tktId);
   };
+
+  if (activeModal === 'terms') {
+    return <TermsAndConditions onClose={() => setActiveModal(null)} />;
+  }
 
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar bg-slate-50 text-slate-900 p-4 pb-28 space-y-3.5">
@@ -255,6 +261,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
           </div>
         </button>
+        
+        {/* New. TERMS & CONDITIONS */}
+        <button
+          onClick={() => setActiveModal('terms')}
+          className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors text-left group cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-700 transition-colors block">
+                Terms & Conditions
+              </span>
+              <span className="text-[11px] text-slate-500 block">
+                Usage Rules & Service Platform Policies
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+          </div>
+        </button>
 
         {/* B. CONTACT US */}
         <button
@@ -354,58 +383,49 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs text-slate-600 leading-relaxed">
-              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl">
-                <span className="font-bold text-emerald-950 block text-[11px] uppercase tracking-wider mb-1">
-                  Master Digital Loan Agreement
-                </span>
-                <p className="text-[11px] text-emerald-900">
-                  This Agreement governs borrowing through the DhanSetu platform in partnership with RBI-regulated Non-Banking Financial Companies (NBFCs).
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs text-slate-600 leading-relaxed">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                <h4 className="font-bold text-emerald-950 uppercase tracking-wider mb-2 text-[11px]">
+                  DOCUMENTS AND IDENTITY VERIFICATION
+                </h4>
+                <p className="text-[11px] text-emerald-900 leading-relaxed">
+                  To register for and use the loan services available through the DhanSetu application, the User may be required to submit the following documents for identity verification and loan application processing, as applicable:
                 </p>
+                <ul className="mt-2 space-y-1.5 text-[11px] text-emerald-900 list-decimal pl-4">
+                  <li><strong>Selfie Photograph:</strong> A recent photograph of the User for identity verification and, where applicable, liveness verification.</li>
+                  <li><strong>Aadhaar Card:</strong> Aadhaar details or an accepted Aadhaar-based verification method, where legally permitted and required. Alternative officially valid documents shall be accepted where applicable.</li>
+                  <li><strong>PAN Card:</strong> PAN details or another legally permitted verification method, as required for identity verification, tax compliance, and loan processing.</li>
+                </ul>
               </div>
 
-              <div className="space-y-2.5">
-                <div className="border-l-2 border-emerald-500 pl-2.5">
-                  <h4 className="font-bold text-slate-900 text-[11px]">1. Regulatory Compliance (RBI Fair Practices)</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    All personal loans strictly comply with Reserve Bank of India (RBI) Digital Lending Directives. Key Fact Statement (KFS) is generated prior to loan acceptance.
-                  </p>
-                </div>
+              <div className="space-y-3 px-1">
+                <h4 className="font-bold text-slate-900 text-[11px]">User Consent and Declaration</h4>
+                <p>
+                  By submitting the above documents, the User confirms that the information provided is accurate and belongs to the User, or that the User is otherwise legally authorised to provide it.
+                </p>
+                
+                <p>The User understands and agrees that:</p>
+                
+                <ul className="space-y-2 list-disc pl-4">
+                  <li>Documents will be collected and processed only for disclosed, lawful purposes associated with identity verification, loan application processing, fraud prevention, and regulatory compliance.</li>
+                  <li>Documents may be shared with the actual lending bank/NBFC and authorised service providers where legally permitted or required.</li>
+                  <li>Aadhaar information shall be collected, authenticated, stored, and processed only in accordance with applicable Aadhaar laws and requirements.</li>
+                  <li>Documents shall be protected using appropriate security controls and shall not be made publicly accessible.</li>
+                  <li>The User may contact DhanSetu support to raise concerns about document handling or personal information.</li>
+                </ul>
 
-                <div className="border-l-2 border-emerald-500 pl-2.5">
-                  <h4 className="font-bold text-slate-900 text-[11px]">2. Interest Rates & Annual Percentage Rate (APR)</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    Interest rates range from 9.9% to 14.5% per annum based on CIBIL appraisal. No hidden processing charges or unapproved deductions.
-                  </p>
-                </div>
-
-                <div className="border-l-2 border-emerald-500 pl-2.5">
-                  <h4 className="font-bold text-slate-900 text-[11px]">3. Disbursement & Repayment Conditions</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    Disbursals are processed directly to the borrower's verified bank account or DhanSetu Wallet. EMIs are payable via official verified UPI QR code, DhanSetu Wallet, or e-NACH mandate.
-                  </p>
-                </div>
-
-                <div className="border-l-2 border-emerald-500 pl-2.5">
-                  <h4 className="font-bold text-slate-900 text-[11px]">4. Zero Foreclosure Penalties</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    Borrowers retain the right to prepay or foreclose their active loans at any time after the first EMI without any prepayment penalty fees.
-                  </p>
-                </div>
-
-                <div className="border-l-2 border-emerald-500 pl-2.5">
-                  <h4 className="font-bold text-slate-900 text-[11px]">5. Data Privacy & Customer Rights</h4>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    All KYC records (Aadhaar, PAN, and selfie) are encrypted under 256-bit AES standards. No contact list or personal device data is ever accessed.
+                <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 mt-2">
+                  <p className="font-semibold text-slate-800">
+                    Submission of these documents does not guarantee loan approval. The final loan decision remains subject to eligibility checks and the applicable lender's approval process.
                   </p>
                 </div>
               </div>
 
-              <div className="p-2.5 bg-slate-100 rounded-xl flex items-center justify-between text-[11px]">
-                <span className="text-slate-600">Agreement Acceptance Status:</span>
+              <div className="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between text-[11px] border border-slate-100">
+                <span className="text-slate-600">Accepted On:</span>
                 <span className="font-bold text-emerald-700 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Accepted by {user?.customerId || 'DS2026102401'}</span>
+                  <span>{new Date().toLocaleDateString('en-GB')}</span>
                 </span>
               </div>
             </div>

@@ -235,31 +235,31 @@ export const PaymentsScreen: React.FC = () => {
       </div>
 
       {/* BENEFICIARY BANK & OFFICIAL UPI INFO */}
-      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-        {/* Official Repayment UPI ID Highlight removed */}
-
-        {/* User Linked Bank */}
-        <div className="space-y-1.5 pt-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-            <Building2 className="w-4 h-4 text-slate-500" />
-            <span>Your Disbursal & Repayment Bank</span>
-          </div>
-          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Bank:</span>
-              <span className="font-semibold text-slate-900">{user?.bankName || 'State Bank of India'}</span>
+      {activeLoan && (
+        <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
+          {/* User Linked Bank */}
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+              <Building2 className="w-4 h-4 text-slate-500" />
+              <span>Your Disbursal & Repayment Bank</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">A/C Number:</span>
-              <span className="font-mono text-slate-700">{user?.accountNumber || '••••••••4892'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">IFSC Code:</span>
-              <span className="font-mono text-slate-700">{user?.ifscCode || 'SBIN0004521'}</span>
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Bank:</span>
+                <span className="font-semibold text-slate-900">{user?.bankName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">A/C Number:</span>
+                <span className="font-mono text-slate-700">{user?.accountNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">IFSC Code:</span>
+                <span className="font-mono text-slate-700">{user?.ifscCode}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* RECENT REPAYMENTS HISTORY */}
       <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">

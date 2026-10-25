@@ -432,9 +432,32 @@ export const KYCScreen: React.FC = () => {
             )}
           </div>
 
-          <div className="pt-4 flex gap-2">
-            <button onClick={handlePrev} className="flex-1 py-3 bg-slate-200 rounded-xl font-bold">Back</button>
-            <button onClick={handleSubmitKYC} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold">Submit</button>
+          {/* Agreement Checkbox */}
+          <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-3xl space-y-3">
+            <h4 className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              User Declaration & Consent
+            </h4>
+            <p className="text-[10px] text-slate-600 leading-relaxed">
+              By submitting, I confirm that the documents belong to me and I authorise DhanSetu to process them for identity verification and loan processing in accordance with Aadhaar laws and privacy standards.
+            </p>
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input 
+                type="checkbox" 
+                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                required
+              />
+              <span className="text-[10px] font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                I have read and agree to the <span className="text-emerald-700 underline decoration-emerald-300">Documents & Identity Verification Policy</span>.
+              </span>
+            </label>
+          </div>
+
+          <div className="pt-2 flex gap-2">
+            <button onClick={handlePrev} className="flex-1 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl font-bold text-xs transition-colors">Back</button>
+            <button onClick={handleSubmitKYC} className="flex-[2] py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98]">
+              Confirm & Submit KYC
+            </button>
           </div>
         </div>
       )}
