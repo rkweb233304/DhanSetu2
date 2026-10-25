@@ -15,7 +15,16 @@ import {
   INITIAL_LOAN_OFFERS 
 } from '../services/supabaseService';
 
-export type TabType = 'home' | 'loans' | 'payments' | 'wallet' | 'profile' | 'kyc' | 'retailer' | 'admin';
+export type TabType = 
+  | 'home' 
+  | 'active-loan' 
+  | 'payments' 
+  | 'profile' 
+  | 'admin-home' 
+  | 'admin-users' 
+  | 'admin-applications' 
+  | 'admin-payments' 
+  | 'kyc';
 export type DeviceFrameType = 'ios' | 'android' | 'fullscreen';
 
 interface AppContextType {
@@ -59,7 +68,7 @@ interface AppContextType {
   simulateNextApplicationStage: (applicationId: string) => Promise<void>;
   
   // Retailer Portal Actions
-  approveLoanByRetailer: (applicationId: string, channel?: 'wallet' | 'bank') => Promise<void>;
+  approveLoanByRetailer: (applicationId: string, channel?: 'upi' | 'bank') => Promise<void>;
   rejectLoanByRetailer: (applicationId: string, reason: string) => Promise<void>;
   
   // Wallet
@@ -149,6 +158,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserState(newUser);
     if (newUser) {
       supabaseService.saveUser(newUser);
+      if (newUser.role === 'admin') {
+        setActiveTab('admin-home');
+        setUserRoleState('admin');
+      } else {
+        setActiveTab('home');
+        setUserRoleState('customer');
+      }
     } else {
       localStorage.removeItem('dhansetu_user');
     }
@@ -245,7 +261,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newApp;
   };
 
-  const approveLoanByRetailer = async (applicationId: string, channel: 'wallet' | 'bank' = 'wallet') => {
+  const approveLoanByRetailer = async (applicationId: string, channel: 'upi' | 'bank' = 'upi') => {
     const app = applications.find(a => a.id === applicationId);
     if (!app) return;
     const updatedApp: LoanApplication = {

@@ -359,6 +359,22 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = () => {
         </button>
       </div>
 
+      {/* LANGUAGE SELECTOR */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <span className="text-[10px] font-bold">आ/A</span>
+            </div>
+            <span className="text-xs font-bold text-slate-900">App Language</span>
+          </div>
+          <div className="flex bg-slate-100 p-1 rounded-xl">
+            <button className="px-4 py-1.5 rounded-lg bg-white shadow-sm text-[10px] font-bold text-indigo-600">English</button>
+            <button className="px-4 py-1.5 rounded-lg text-[10px] font-bold text-slate-500 hover:text-slate-700">हिंदी</button>
+          </div>
+        </div>
+      </div>
+
       {/* APP VERSION & SECURITY BADGE */}
       <div className="text-center pt-2 text-[11px] text-slate-400">
         <span>DhanSetu v2.4 • RBI Digital Lending Guidelines 2026</span>

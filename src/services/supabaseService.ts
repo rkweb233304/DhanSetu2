@@ -5,7 +5,8 @@ import {
   PaymentRecord, 
   WalletTransaction, 
   LoanApplication,
-  SupabaseConfig 
+  SupabaseConfig,
+  UserRole
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -19,61 +20,33 @@ const STORAGE_KEYS = {
 
 export const INITIAL_LOAN_OFFERS: LoanOffer[] = [
   {
-    id: 'offer-prime-personal',
-    title: 'DhanSetu Prime Personal Loan',
-    category: 'personal',
-    minAmount: 50000,
-    maxAmount: 500000,
-    minTenureMonths: 6,
-    maxTenureMonths: 36,
-    interestRatePerAnnum: 10.75,
-    processingFeePercent: 1.5,
-    tag: 'Pre-Approved Special',
-    description: 'Lowest interest rates for salaried individuals with instant bank transfer upon verification.',
-    features: ['Instant digital approval', 'Zero prepayment charges', 'Flexible 6-36 months EMI', 'Direct Wallet Disbursal'],
+    id: 'tier-1-micro',
+    title: 'Micro Advance Loan',
+    category: 'instant',
+    minAmount: 500,
+    maxAmount: 2000,
+    minTenureMonths: 1,
+    maxTenureMonths: 1,
+    interestRatePerAnnum: 84, // 7% per month * 12
+    processingFeePercent: 1.0,
+    tag: '7% Monthly Interest',
+    description: 'Quick micro loan up to ₹2,000 with 1 month tenure at 7% monthly interest.',
+    features: ['Instant Approval', '7% Monthly Interest', '1 Month Tenure', 'No Collateral'],
     recommended: true
   },
   {
-    id: 'offer-instant-cash',
-    title: 'Instant Cash Advance',
-    category: 'instant',
-    minAmount: 10000,
-    maxAmount: 75000,
+    id: 'tier-2-short',
+    title: 'Short Term Loan',
+    category: 'personal',
+    minAmount: 2100,
+    maxAmount: 5000,
     minTenureMonths: 3,
-    maxTenureMonths: 12,
-    interestRatePerAnnum: 12.5,
+    maxTenureMonths: 3,
+    interestRatePerAnnum: 84, // 7% per month * 12
     processingFeePercent: 1.0,
-    tag: '5-Minute Disbursal',
-    description: 'Immediate liquidity for urgent expenses, shopping, or emergency bill payments.',
-    features: ['Minimal document requirement', 'Disbursal in under 5 minutes', 'Short flexible tenure', 'No collateral needed']
-  },
-  {
-    id: 'offer-flexi-credit',
-    title: 'Flexi-Line Emergency Credit',
-    category: 'flexi',
-    minAmount: 25000,
-    maxAmount: 250000,
-    minTenureMonths: 6,
-    maxTenureMonths: 24,
-    interestRatePerAnnum: 11.9,
-    processingFeePercent: 1.25,
-    tag: 'Pay As You Use',
-    description: 'Pre-approved credit line. Withdraw anytime into your wallet and pay interest only on the used amount.',
-    features: ['Reusable credit limit', 'Interest only on utilized funds', 'Instant top-up to wallet', 'UPI linked repayments']
-  },
-  {
-    id: 'offer-education-growth',
-    title: 'Career & Education Loan',
-    category: 'education',
-    minAmount: 50000,
-    maxAmount: 750000,
-    minTenureMonths: 12,
-    maxTenureMonths: 48,
-    interestRatePerAnnum: 9.9,
-    processingFeePercent: 1.0,
-    tag: 'Lowest 9.9% p.a.',
-    description: 'Special subsidized interest rate for upskilling, certifications, college fees, and professional tools.',
-    features: ['Subsidized rates from 9.9%', 'Moratorium period option', 'Long repayment tenure', 'Tax benefits eligible']
+    tag: '7% Monthly Interest',
+    description: 'Short term advance from ₹2,100 to ₹5,000 with 3 months tenure at 7% monthly interest.',
+    features: ['Instant Approval', '7% Monthly Interest', '3 Months Tenure', 'Direct Disbursal']
   }
 ];
 
@@ -84,7 +57,6 @@ export function generateCustomerId(): string {
   const date = String(now.getDate()).padStart(2, '0');
   const dateKey = `${year}${month}${date}`;
 
-  // Read serial counter for today from localStorage
   const counterKey = `dhansetu_customer_sn_${dateKey}`;
   const currentCount = parseInt(localStorage.getItem(counterKey) || '0', 10);
   const nextCount = currentCount + 1;
@@ -92,6 +64,22 @@ export function generateCustomerId(): string {
   
   const sn = String(nextCount).padStart(2, '0');
   return `${dateKey}${sn}`;
+}
+
+export function generateLoanId(customerId: string): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const date = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${year}${month}${date}`;
+
+  const counterKey = `dhansetu_loan_sn_${customerId}`;
+  const currentCount = parseInt(localStorage.getItem(counterKey) || '0', 10);
+  const nextCount = currentCount + 1;
+  localStorage.setItem(counterKey, String(nextCount));
+
+  const sn = String(nextCount).padStart(2, '0');
+  return `DSL${dateKey}${sn}`;
 }
 
 export class SupabaseService {
@@ -198,6 +186,16 @@ export class SupabaseService {
 
   public async syncUserDataFromSupabase(customerId: string, profile: UserProfile): Promise<void> {
     try {
+      // 0. Fetch latest profile info (especially role)
+      const userRes = await this.request(`auth_users?customer_id=eq.${customerId}&select=*`);
+      if (userRes && userRes.length > 0) {
+        const dbU = userRes[0];
+        profile.role = dbU.role;
+        profile.fullName = dbU.full_name || profile.fullName;
+        profile.email = dbU.email_id || profile.email;
+        localStorage.setItem('dhansetu_user_role', dbU.role);
+      }
+
       // 1. Fetch KYC Documents by customer_id
       const kycRes = await this.request(`kyc_documents?customer_id=eq.${customerId}&select=*&order=created_at.desc&limit=1`);
       if (kycRes && kycRes.length > 0) {
@@ -333,9 +331,9 @@ export class SupabaseService {
           await this.request(`auth_users?id=eq.${dbUser.id}`, 'PATCH', { customer_id: customerId });
         }
 
-        const userRole: 'customer' | 'retailer' = (dbUser.role === 'retailer' || dbUser.role === 'customer') 
+        const userRole: UserRole = (dbUser.role === 'admin' || dbUser.role === 'retailer' || dbUser.role === 'customer') 
           ? dbUser.role 
-          : ((localStorage.getItem('dhansetu_user_role') as 'customer' | 'retailer') || 'customer');
+          : ((localStorage.getItem('dhansetu_user_role') as UserRole) || 'customer');
 
         const profile: UserProfile = {
           id: dbUser.id,
@@ -349,8 +347,9 @@ export class SupabaseService {
           accountNumber: '••••••••4892',
           ifscCode: 'SBIN0004521',
           role: userRole,
-          retailerId: dbUser.retailer_id || (userRole === 'retailer' ? 'RT-DHAN-9021' : undefined),
-          retailerStoreName: dbUser.store_name || (userRole === 'retailer' ? `${dbUser.full_name || 'Partner'} Store` : undefined),
+          isActive: dbUser.is_active !== false,
+          inactiveReason: dbUser.inactive_reason,
+          approvedLoanLimit: dbUser.approved_loan_limit || 0,
           isFirstTimeLogin: false,
           kycCompleted: false,
           kyc: { aadharStatus: 'pending', panStatus: 'pending', overallStatus: 'not_started' },

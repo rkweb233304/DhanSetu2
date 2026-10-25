@@ -31,10 +31,8 @@ export interface KYCDocuments {
 
 export interface UserProfile {
   id: string;
-  customerId: string; // Format: DSYYYYMMDD01 e.g. DS2026102401
-  role?: UserRole; // 'customer' or 'retailer'
-  retailerId?: string; // e.g. RT-DHAN-9021
-  retailerStoreName?: string; // e.g. DhanSetu Partner Store
+  customerId: string; // Format: YYYYMMDDNN e.g. 2026102401
+  role?: UserRole; // 'customer' or 'admin'
   email: string;
   fullName: string;
   phoneNumber: string;
@@ -45,6 +43,9 @@ export interface UserProfile {
   ifscCode: string;
   isFirstTimeLogin: boolean;
   kycCompleted: boolean;
+  isActive?: boolean;
+  inactiveReason?: string;
+  approvedLoanLimit?: number; // Allocated by admin during KYC approval
   kyc: KYCDocuments;
   createdAt: string;
 }
@@ -103,7 +104,9 @@ export interface LoanApplication {
   retailerName?: string;
   retailerApprovedAt?: string;
   rejectionReason?: string;
-  disbursalChannel?: 'wallet' | 'bank';
+  disbursalChannel?: 'upi' | 'bank';
+  upiId?: string;
+  targetBankAccount?: string;
   history: {
     stage: ApplicationStage;
     title: string;

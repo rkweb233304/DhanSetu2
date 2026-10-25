@@ -1,4 +1,4 @@
--- DHANSETU DATABASE RESET & REPAIR SCRIPT
+-- DHANSETU DATABASE RESET & REPAIR SCRIPT (FINAL)
 -- WARNING: This will DELETE all existing data and recreate tables with correct TEXT IDs.
 -- Execute this in your Supabase SQL Editor (https://supabase.com/dashboard/project/_/sql)
 
@@ -157,7 +157,20 @@ FOR ALL TO public
 USING (bucket_id = 'Documents') 
 WITH CHECK (bucket_id = 'Documents');
 
--- 12. SEED INITIAL DATA (Optional)
+-- 12. SEED SAMPLE USERS (Customer, Retailer, Admin)
+-- All users use PIN: 123456
+
+-- 1. Normal Customer
 INSERT INTO auth_users (id, customer_id, full_name, mobile_no, email_id, pin, role)
-VALUES ('usr_demo_01', 'DS2026102401', 'Rahul Sharma', '9876543210', 'rahul.sharma@example.com', '123456', 'customer')
+VALUES ('usr_demo_customer', '2026102401', 'Rahul Sharma', '9876543210', 'rahul.sharma@example.com', '123456', 'customer')
+ON CONFLICT (mobile_no) DO NOTHING;
+
+-- 2. Retailer Partner
+INSERT INTO auth_users (id, customer_id, full_name, mobile_no, email_id, pin, role)
+VALUES ('usr_demo_retailer', '2026102402', 'Amit Retailer', '9876543211', 'amit.retailer@example.com', '123456', 'retailer')
+ON CONFLICT (mobile_no) DO NOTHING;
+
+-- 3. Administrator
+INSERT INTO auth_users (id, customer_id, full_name, mobile_no, email_id, pin, role)
+VALUES ('usr_demo_admin', '2026102403', 'Admin Control', '9876543212', 'admin@dhansetu.in', '123456', 'admin')
 ON CONFLICT (mobile_no) DO NOTHING;

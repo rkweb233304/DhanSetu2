@@ -108,9 +108,9 @@ export const AuthPage: React.FC = () => {
     if (registeredUser) {
       setUser(registeredUser);
       setUserRole(registeredUser.role || 'customer');
-      if (registeredUser.role === 'retailer') {
-        setActiveTab('retailer');
-        showToast('Welcome Retailer! You can now review and approve customer loans.', 'success');
+      if (registeredUser.role === 'retailer' || registeredUser.role === 'admin') {
+        setActiveTab('admin-applications');
+        showToast('Welcome Partner! You can now review and approve customer loans.', 'success');
       } else {
         setActiveTab('home');
         showToast('Welcome to DhanSetu! Complete your KYC to unlock personal loans.', 'info');

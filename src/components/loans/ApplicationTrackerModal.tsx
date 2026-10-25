@@ -198,8 +198,8 @@ export const ApplicationTrackerModal: React.FC<ApplicationTrackerModalProps> = (
               <button
                 onClick={() => {
                   onClose();
-                  setUserRole('retailer');
-                  setActiveTab('retailer');
+                  setUserRole('admin');
+                  setActiveTab('admin-applications');
                 }}
                 className="mt-1 w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >

@@ -155,7 +155,7 @@ export const PaymentsScreen: React.FC = () => {
             onClick={() => {
               if (!activeLoan) {
                 showToast('No active loan to pay right now. Apply for a loan first!', 'info');
-                setActiveTab('loans');
+                setActiveTab('home');
               } else {
                 setShowPayModal(true);
               }
@@ -178,7 +178,7 @@ export const PaymentsScreen: React.FC = () => {
         <button
           onClick={() => {
             if (!activeLoan) {
-              setActiveTab('loans');
+              setActiveTab('active-loan');
             } else {
               setPayType('emi');
               setShowPayModal(true);
@@ -198,7 +198,7 @@ export const PaymentsScreen: React.FC = () => {
         <button
           onClick={() => {
             if (!activeLoan) {
-              setActiveTab('loans');
+              setActiveTab('active-loan');
             } else {
               setPayType('full');
               setShowPayModal(true);

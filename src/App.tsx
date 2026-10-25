@@ -3,21 +3,24 @@ import { AppProvider, useApp } from './context/AppContext';
 import { HeaderBar } from './components/HeaderBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/home/HomeScreen';
+import { ActiveLoanScreen } from './components/loans/ActiveLoanScreen';
 import { PaymentsScreen } from './components/payments/PaymentsScreen';
 import { ProfileScreen } from './components/profile/ProfileScreen';
 import { KYCScreen } from './components/kyc/KYCScreen';
-import { RetailerScreen } from './components/retailer/RetailerScreen';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { AdminUsersScreen } from './components/admin/AdminUsersScreen';
+import { AdminApplicationsScreen } from './components/admin/AdminApplicationsScreen';
+import { AdminPaymentsScreen } from './components/admin/AdminPaymentsScreen';
 import { AuthPage } from './components/auth/AuthPage';
 import { SupabaseModal } from './components/common/SupabaseModal';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 function DhanSetuApp() {
-  const { activeTab, setActiveTab, toastMessage, user } = useApp();
+  const { activeTab, toastMessage, user } = useApp();
 
   const [supabaseModalOpen, setSupabaseModalOpen] = useState(false);
 
-  // If user is not logged in, render the dedicated full-page Login & Register directly (NO POPUP)
+  // If user is not logged in, render dedicated full-page Login & Register
   if (!user) {
     return (
       <div className="min-h-screen w-full bg-slate-50 flex flex-col justify-center items-center">
@@ -70,18 +73,18 @@ function DhanSetuApp() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar pb-24">
-          {activeTab === 'home' && (
-            <HomeScreen />
-          )}
-          {(activeTab === 'payments' || (activeTab as any) === 'wallet') && (
-            <PaymentsScreen />
-          )}
-          {activeTab === 'profile' && (
-            <ProfileScreen onOpenSupabaseModal={() => setSupabaseModalOpen(true)} />
-          )}
-          {activeTab === 'retailer' && <RetailerScreen />}
+          {/* Normal User Tabs */}
+          {activeTab === 'home' && <HomeScreen />}
+          {activeTab === 'active-loan' && <ActiveLoanScreen />}
+          {activeTab === 'payments' && <PaymentsScreen />}
+          {activeTab === 'profile' && <ProfileScreen onOpenSupabaseModal={() => setSupabaseModalOpen(true)} />}
           {activeTab === 'kyc' && <KYCScreen />}
-          {activeTab === 'admin' && <AdminDashboard />}
+
+          {/* Admin Tabs */}
+          {activeTab === 'admin-home' && <AdminDashboard />}
+          {activeTab === 'admin-users' && <AdminUsersScreen />}
+          {activeTab === 'admin-applications' && <AdminApplicationsScreen />}
+          {activeTab === 'admin-payments' && <AdminPaymentsScreen />}
         </div>
 
         {/* Fixed Bottom Navigation Bar */}
